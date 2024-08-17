@@ -1,6 +1,7 @@
 import React, { Component, useContext, useState, useEffect, useRef } from 'react'
-import { Breadcrumb, Table, Input, InputNumber, Button, Popconfirm, Form, Drawer, Col, Row, Select, DatePicker, Space, Tooltip, notification, Modal, Tag, Badge, Image } from 'antd'
+import { Breadcrumb, Table, Input, InputNumber, Button, Popconfirm, Form, Drawer, Col, Row, Select, DatePicker, Space, Tooltip, notification, Modal, Tag, Badge, Image, message } from 'antd'
 import axios from 'axios'
+import Qs from 'qs'
 import store from '../../../../redux/store'
 import '../../../../style/common.less'
 //import 'antd/dist/antd.css';
@@ -102,10 +103,14 @@ export default class ManagePawn extends Component {
       {
         title: '操作',
         dataIndex: 'operation',
-        width: '70px',
+        width: '90px',
         render: (_, record) =>
           this.state.dataSource.length >= 1 ? (
             <div>
+              <Popconfirm title="确认通知吗？" onConfirm={() => this.handleNotification(record)}>
+                <a>通知</a>
+              </Popconfirm>
+              &nbsp;&nbsp;&nbsp;&nbsp;
               <Popconfirm title="确认删除吗？" onConfirm={() => this.handleDelete(record.key)}>
                 <a>删除</a>
               </Popconfirm>
@@ -122,7 +127,7 @@ export default class ManagePawn extends Component {
         title: '当户姓名',
         dataIndex: 'UserName',
         key: 'UserName',
-        width: '100px'
+        width: '90px'
       },
       {
         title: '当户证件号',
@@ -134,13 +139,13 @@ export default class ManagePawn extends Component {
         title: '开票日期',
         dataIndex: 'StartDate',
         key: 'StartDate',
-        width: '110px'
+        width: '100px'
       },
       {
         title: '到期日期',
         dataIndex: 'EndDate',
         key: 'EndDate',
-        width: '110px'
+        width: '100px'
       },
       {  
         title: '当物数量',
@@ -152,19 +157,19 @@ export default class ManagePawn extends Component {
         title: '总费用',
         dataIndex: 'Total',
         key: 'Total',
-        width: '100px'
+        width: '90px'
       },
       {
         title: '总当价',
         dataIndex: 'TotalPrice',
         key: 'TotalPrice',
-        width: '110px'
+        width: '100px'
       },
       {
         title: '状态',
         dataIndex: 'state',
         key: 'state',
-        width: '110px',
+        width: '90px',
         filters: [
             {text: '已建当',value: '1'},
             {text: '已续当',value: '2'},
@@ -187,6 +192,7 @@ export default class ManagePawn extends Component {
       visible: false,
       visible_modal: false,
       childrenDrawer: false,
+      isModalVisible: false,
       SpeDetailArr: [],
       DocDetailArr: [],
       SpecificationArr: [],
@@ -224,12 +230,20 @@ export default class ManagePawn extends Component {
       canDistribute: '',
       Delivery: '',
       SpeDetail: '',
-      DocDetail: ''
+      DocDetail: '',
+      pawnshop:{},
+
+      Content:'',
+      PubType:''
     };
   }
 
+  formRef = React.createRef();
+  formRef2 = React.createRef();
+  
   componentDidMount(){
     this.getData()
+    this.getPS()
   }
 
   getData = async () => {
@@ -262,8 +276,20 @@ export default class ManagePawn extends Component {
     })
   }
 
-  formRef = React.createRef();
-  formRef2 = React.createRef();
+  getPS = async () => {
+    var that = this;
+    const {PSID} = store.getState()
+    await axios.get('/getPawnshop',{
+      params:{
+        id: PSID
+      }
+    }).then(response=>{
+      that.setState({
+        pawnshop:response.data[0]
+      })
+    });
+
+  }
 
   getDetail = async (PTID) => {
     let dataSource1 = []
@@ -352,7 +378,7 @@ export default class ManagePawn extends Component {
 
     return (
       <div style={{maxHeight:'150px',overflow:'auto'}}>
-        <Table columns={columns1} dataSource={this.state.dataSource1} pagination={false} />;
+        <Table columns={columns1} dataSource={this.state.dataSource1} pagination={false} />
       </div>
     )
   };
@@ -521,6 +547,153 @@ export default class ManagePawn extends Component {
       ChildrenDrawerData,SpeDetailArr,DocDetailArr,SpecificationArr,DocumentsArr,SpecificationData,selectedTags,
       childrenDrawer:true
     })
+  };
+
+  // printTicket = async () => {
+  //   const {PSID,PSName,SocCreCode} = this.state.pawnshop
+  //   const {PTID,UserID,UserName,Address,Phone,StartDate,EndDate,PSstaffIDA,PSstaffIDB,Notes,Quantity,TotalPrice} = this.state;
+  //   let i=0;
+  //   let m=[];
+    
+  //   let data = {
+  //     pageno:1,
+	//     pagesize:0, //输出全部
+	//     filter:'',
+	// 	  sqlprocedure:'studenttopic_grid',
+	// 	  studentid:'',
+	// 	  usertype:'s',
+	// 	  style:'table', //form;
+	// 	  headerrows:9,
+	// 	  nodetype:'datagrid',
+	// 	  header:'学生选题信息表',
+	// 	  date:'2021年3月份',
+	// 	  username:'',
+	// 	  image1:'/system/images/building2_big.jpg',
+	// 	  template:'tstudenttopic.xls',
+	// 	  action:'_exportexcel',
+	// 	  exporttopdf:0, //同时生成pdf出文件
+  //   }
+  //   console.log(JSON.stringify(data))
+
+  //   await axios({
+  //     method: 'post',
+  //     url: 'http://localhost:3000/doEvents',
+  //       header:{
+  //           'Content-Type':'application/json'  //如果写成contentType会报错
+  //       },
+  //       data: Qs.stringify(data)
+  //   });
+
+  // };
+
+
+  printTicket = async () => {
+    const {PSID,PSName,SocCreCode} = this.state.pawnshop
+    const {PTID,UserID,UserName,Address,Phone,StartDate,EndDate,PSstaffIDA,PSstaffIDB,Notes,Quantity,TotalPrice,Total} = this.state;
+    let i=0;
+    let m=[];
+    
+    let data = {
+      PSID,PSName,SocCreCode,PTID,
+      PSAddress:store.getState().Address,
+      PSPhone:store.getState().Phone,
+      UserID,UserName,StartDate,EndDate,PSstaffIDA,PSstaffIDB,
+      Notes:Notes?Notes:'无',Quantity,
+      UserAddress:Address,
+      UserPhone:Phone,
+      TotalPrice:TotalPrice,
+      Fare:Total,
+      Payment: TotalPrice*1.0-Total*1.0,
+      
+      exporttopdf: 1,
+      image1: "/system/images/building3_big.jpg",
+      sysrowno: "2",
+      template: "pawnticket.xls",
+      _editable: "1",
+      headerrows:9,
+    }
+    // console.log(JSON.stringify(data))
+
+    await axios({
+      method: 'post',
+      url: 'http://localhost:3000/doExcel',
+        header:{
+            'Content-Type':'application/json'  //如果写成contentType会报错
+        },
+        data: Qs.stringify(data)
+    }).then(response=>{
+      notification.open({
+        message: 'Notification',
+        description:
+          <div style={{whiteSpace: 'pre-wrap'}}>已成功打印，票据保存在C:\apache-tomcat-8.0.32\webapps\myDemo\system\temp</div>,
+        icon: <SmileOutlined style={{color:'orange'}}/>,
+        duration: 2
+      });
+    });
+
+  };
+
+  handleNotification = (record) => {
+    const {PTID,UserID,UserName,Gender} = record
+    this.setState({
+      isModalVisible:true,
+      PTID,UserID,UserName,Gender
+    })
+  }
+
+  handleCancel = () => {
+    this.setState({isModalVisible:false,PTID:'',Content:''})
+  }
+
+  InsertInfo = () => {
+    const {PubType,UserName,Gender,PTID} = this.state
+    if(PubType===""){
+      message.warning("请先选择通知类型")
+      return
+    }
+    let Content = ''
+    const GenderText = Gender==='0'?'先生':'女士'
+    if(PubType==="到期提醒"){
+      Content = '尊敬的'+UserName+GenderText+'，您在'+store.getState().PSName+'的当单('+PTID+')已到期，请尽快赎回。如有特殊情况，请联系'+store.getState().PSPhone+',感谢您的配合~'
+    }else if(PubType==="售出提醒"){
+      Content = '尊敬的'+UserName+GenderText+'，您在'+store.getState().PSName+'的到期当单('+PTID+')已售出，不再支持赎回，特此提醒。'
+    }else{
+      Content = '尊敬的'+UserName+GenderText+'，您在'+store.getState().PSName+'的当单('+PTID+')         ，特此提醒。'
+    }
+    this.setState({
+      Content
+    })
+  }
+
+  pubNotification = () => {
+    var that = this
+    const {PubType,UserID,PTID,Content} = this.state
+    var timestamp=new Date().getTime()
+    const PubDate = moment(new Date()).format('YYYY-MM-DD')
+
+    let data = {
+      PubID: timestamp,
+      Publisher: store.getState().PSID,
+      PubType,PTID,Content,PubDate,
+      Receiver: UserID
+    }
+
+    axios({
+      method: 'post',
+      url: 'http://localhost:3000/Notification',
+      data: Qs.stringify(data)
+    }).then(response=>{
+      notification.open({
+        message: '消息',
+        description:
+          <div style={{whiteSpace: 'pre-wrap'}}>
+            已成功发送通知给当户~
+          </div>,
+        icon: <SmileOutlined style={{color:'orange'}}/>,
+        duration: 2
+      });
+      that.handleCancel()
+    });
   }
 
   render() {
@@ -552,9 +725,9 @@ export default class ManagePawn extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>典当管理</Breadcrumb.Item>
-          <Breadcrumb.Item>典当信息管理</Breadcrumb.Item>
+          <Breadcrumb.Item>当单信息管理</Breadcrumb.Item>
         </Breadcrumb>
         <div className="site-layout-background" style={{ padding: 10 }}>
           <Table
@@ -572,6 +745,7 @@ export default class ManagePawn extends Component {
             onRow={record => {
               return {
                 onDoubleClick: event => {
+                  console.log(this.state.pawnshop)
                   const { PTID,UserID,UserName,Gender,Address,Phone,Email,Wechat,StartDate,EndDate,PSstaffIDA,PSstaffIDB,Notes,Quantity,TotalPrice,Interest,StoreFare,OverdueFare,FreightFare,AuthenticateFare,AssessFare,NotaryFare,InsuranceFare,OtherFare,Total,ENotes } = record
                   this.getDetail(PTID)
                   this.setState({
@@ -592,16 +766,21 @@ export default class ManagePawn extends Component {
 
         <Drawer
           title="查看当单"
-          width={720}
+          width={780}
           onClose={this.onClose}
           visible={this.state.visible}
           bodyStyle={{ paddingBottom: 80 }}
+          extra={
+            <Space>
+              <Button onClick={this.printTicket} type="primary">打印</Button>
+            </Space>
+          }
         >
-          <Form layout="vertical" ref={this.formRef} hideRequiredMark
+          <Form layout="horizontal" ref={this.formRef} hideRequiredMark
           initialValues={{PTID,UserID,UserName,Gender,Address,Phone,Email,Wechat,StartDate,EndDate,PSstaffIDA,Notes,Quantity,TotalPrice}}
           >
             <Row gutter={16}>
-              <Col span={12}>
+              <Col span={8}>
                 <Form.Item
                   name="PTID"
                   label="当票编号"
@@ -609,7 +788,7 @@ export default class ManagePawn extends Component {
                   <Input onChange={this.handlePTID} />
                 </Form.Item>
               </Col>
-              <Col span={12}>
+              <Col span={16}>
                 <Form.Item
                   name="PawnDate"
                   label="典当期限"
@@ -622,7 +801,7 @@ export default class ManagePawn extends Component {
             <hr/>
             <p style={{margin:0,minHeight:'30px'}}>当户信息</p>
             <Row gutter={16}>
-              <Col span={8}>
+              <Col span={10}>
                 <Form.Item
                   name="UserID"
                   label="当户证件号"
@@ -630,7 +809,7 @@ export default class ManagePawn extends Component {
                   <Input readOnly onPressEnter={this.searchUserInfo}/>
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={7}>
                 <Form.Item
                   name="UserName"
                   label="当户姓名"
@@ -638,17 +817,25 @@ export default class ManagePawn extends Component {
                 <Input readOnly />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={7}>
                 <Form.Item
                 name="Gender"
-                label="性别"
+                label="性&nbsp;&nbsp;&nbsp;&nbsp;别"
                 >
                   <Input readOnly />
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={16}>
-              <Col span={8}>
+              <Col span={10}>
+                <Form.Item
+                  name="Email"
+                  label="邮 箱 地 址"
+                >
+                  <Input readOnly value={this.state.Email}/>
+                </Form.Item>
+              </Col>
+              <Col span={7}>
                 <Form.Item
                   name="Phone"
                   label="联系电话"
@@ -656,15 +843,7 @@ export default class ManagePawn extends Component {
                   <Input readOnly value={this.state.Phone} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
-                <Form.Item
-                  name="Email"
-                  label="邮箱地址"
-                >
-                  <Input readOnly value={this.state.Email}/>
-                </Form.Item>
-              </Col>
-              <Col span={8}>
+              <Col span={7}>
                 <Form.Item
                   name="Wechat"
                   label="微信号"
@@ -677,9 +856,9 @@ export default class ManagePawn extends Component {
               <Col span={24}>
                 <Form.Item
                   name="Address"
-                  label="详细住址"
+                  label="详 细 住 址"
                 >
-                  <Input.TextArea readOnly rows={2} value={this.state.Address}/>
+                  <Input readOnly value={this.state.Address}/>
                 </Form.Item>
               </Col>
             </Row>
@@ -703,10 +882,10 @@ export default class ManagePawn extends Component {
                       name={key}
                       label={index+1*1}
                     >
-                      <Space size={20} align='start' style={{display:'flex',marginRight:'50px'}}>
+                      <Space size={10} align='start' style={{display:'flex',marginRight:'50px'}}>
                         <Image
                         preview={{visible:false}}
-                        width={200}
+                        width={100}
                         src={images[0]?images[0]:'https://ww1.sinaimg.cn/large/007rAy9hgy1g24by9t530j30i20i2glm.jpg'}
                         onClick={() => this.setState({ImageVisible:true})}
                         />
@@ -720,8 +899,7 @@ export default class ManagePawn extends Component {
                         </Image.PreviewGroup>
                         </div>
                         <Space size={5} direction="vertical">
-                            <p>当品编号 : {PIID}</p>
-                            <p>当品名称 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数量 : {Quantity}</p>
+                            <p>当品编号 : {PIID}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名称 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;类别 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数量 : {Quantity}</p>
                             <p>估价 : {AssessPrice}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;折价率 : {Rate}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当价 : <span style={{color:'orange'}}>{Amount}</span></p>
                             <p>物品详情 : {Specification?Specification:'无'}</p>
                             <p>包含附件 : {Documents?Documents:'无'}</p>
@@ -739,7 +917,7 @@ export default class ManagePawn extends Component {
                   name="Notes"
                   label="当单标注"
                 >
-                  <Input.TextArea rows={2} value={this.state.Notes} onChange={this.handleNotes} placeholder="无" />
+                  <Input value={this.state.Notes} onChange={this.handleNotes} placeholder="无" />
                 </Form.Item>
               </Col>
             </Row>
@@ -747,7 +925,7 @@ export default class ManagePawn extends Component {
               <Col span={12}>
                 <Form.Item
                   name="PSstaffIDA"
-                  label="经办人"
+                  label="经&nbsp;&nbsp;办&nbsp;&nbsp;人"
                 >
                   <Input onChange={this.handlePSstaffIDA} />
                 </Form.Item>
@@ -755,7 +933,7 @@ export default class ManagePawn extends Component {
               <Col span={12}>
                 <Form.Item
                   name="PSstaffIDB"
-                  label="复核人"
+                  label="复&nbsp;&nbsp;核&nbsp;&nbsp;人"
                 >
                   <Input onChange={this.handlePSstaffIDB} />
                 </Form.Item>
@@ -856,12 +1034,28 @@ export default class ManagePawn extends Component {
                   name="ENotes"
                   label="费用备注"
                 >
-                  <Input.TextArea rows={2} onChange={(e)=>this.setState({ENotes:e.target.value})} placeholder="无" />
+                  <Input onChange={(e)=>this.setState({ENotes:e.target.value})} placeholder="无" />
                 </Form.Item>
               </Col>
             </Row>
           </Form>
         </Drawer>
+
+        <Modal
+          visible={this.state.isModalVisible}
+          title="通知内容"
+          onCancel={this.handleCancel}
+          onOk={this.pubNotification}
+        >
+          通知类型: 
+          <Select onChange={(e)=>{this.setState({PubType:e})}} style={{width:'200px',margin:'0 0 10px 10px'}}>
+            <Option value="到期提醒">到期提醒</Option>
+            <Option value="售出提醒">售出提醒</Option>
+            <Option value="普通提醒">普通提醒</Option>
+          </Select>
+          <Button type='primary' style={{marginLeft:'20px'}} onClick={this.InsertInfo}>快速录入</Button>
+          <Input.TextArea value={this.state.Content} rows={3} onChange={(e)=>this.setState({Content:e.target.value})} placeholder="请输入提醒内容" />
+        </Modal>
       </div>
     )
   }

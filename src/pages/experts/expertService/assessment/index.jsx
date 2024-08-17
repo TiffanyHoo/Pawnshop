@@ -1,10 +1,11 @@
 import React, { Component, useContext, useState, useEffect, useRef } from 'react'
-import { Breadcrumb, Table, Input, Button, Popconfirm, Form, Drawer, Col, Row, Select, DatePicker, Space, Badge, notification } from 'antd'
+import { Breadcrumb, Table, Input, InputNumber, Modal, Popconfirm, Form, Drawer, Image, Select, Space, notification } from 'antd'
 import axios from 'axios'
+import Qs from 'qs'
 import store from '../../../../redux/store'
 import '../../../../style/common.less'
 //import 'antd/dist/antd.css';
-import { QuestionCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, SmileOutlined } from '@ant-design/icons';
+import { SmileOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -95,6 +96,18 @@ export default class Assessment extends Component {
 
     this.columns = [
       {
+        title: '操作',
+        dataIndex: 'operation',
+        render: (_, record) =>
+          this.state.dataSource.length >= 1 ? (
+            <div>
+              <Popconfirm title="确认录入吗?" onConfirm={() => {this.handleModal(record)}}>
+                <a>录入</a>
+              </Popconfirm>
+            </div>
+          ) : null,
+      },
+      {
         title: '当物编号',
         dataIndex: 'PIID',
         key: 'PIID',
@@ -138,46 +151,30 @@ export default class Assessment extends Component {
           ) 
       },
       {
-        title: '服务费',
-        dataIndex: 'totalFare',
-        key: 'totalFare'
+        title: '鉴定服务费',
+        dataIndex: 'AuthenticateFare',
+        key: 'AuthenticateFare'
       },
       {
-        title: '操作',
-        dataIndex: 'operation',
-        render: (_, record) =>
-          this.state.dataSource.length >= 1 ? (
-            <Popconfirm title="确认录入吗?" onConfirm={() => {console.log(record.key)}}>
-              <a>录入</a>
-            </Popconfirm>
-          ) : null,
+        title: '估价服务费',
+        dataIndex: 'AssessFare',
+        key: 'AssessFare'
       },
     ];
 
     this.state = {
+      ImageVisible: false,
+      images:['http://localhost:8080/filepath/item/gold1.png'],
       visible: false ,
+      isModalVisible: false,
+      isAuthenticate: false,
+      isAssessPrice: false,
       dataSource: [],
       count: 0,
       PIID: '',
-      title: '',
-      SpeDetail: '',
-      DocDetail: '',
-      Specification: '',
-      Documents: '',
-      photopath: '',
-      Files: '',
-      canDistribute: '',
       PSID: '',
-      Delivery: '',
-      DeliveryTo: '',
-      DeliveryBack: '',
-      Authenticate: '',
-      AuthenRes: '',
-      AuthenticateFare: '',
-      Assess: '',
-      AssessRes: '',
-      AssessFare: '',
-      state: '',
+      AuthenRes: 0,
+      AssessRes: 0,
       Notes: ''
     };
   }
@@ -191,7 +188,8 @@ export default class Assessment extends Component {
     console.log(store.getState().ExpertID)
     await axios.get('/getExpSer',{
       params:{
-        id:store.getState().ExpertID
+        type:'AcceptedSer',
+        ExpertID:store.getState().ExpertID
       }
     }).then(response=>{
         if(response.data.length === 0){
@@ -217,55 +215,6 @@ export default class Assessment extends Component {
     })
   }
 
-  handleID = (e) =>{
-    this.setState({
-      ComMemID: e.target.value
-    })
-  }
-
-  handleName = (e) =>{
-    this.setState({
-      ComMemName: e.target.value
-    })
-  }
-
-  handleGender = (e) =>{
-    this.setState({
-      Gender: e
-    })
-  }
-
-  handleDate = (date, dateString) =>{
-    this.setState({
-      BirthDate: dateString
-    })
-  }
-
-  handleAddress = (e) =>{
-    this.setState({
-      Address: e.target.value
-    })
-  }
-
-  handlePhone = (e) =>{
-    this.setState({
-      Phone: e.target.value
-    })
-  }
-
-  handleEmail = (e) =>{
-    this.setState({
-      Email: e.target.value
-    })
-  }
-
-  handleNotes = (e) =>{
-    this.setState({
-      Notes: e.target.value
-    })
-  }
-
-
   showDrawer = () => {
     this.setState({
       visible: true,
@@ -278,38 +227,53 @@ export default class Assessment extends Component {
     });
   };
 
-  onSubmit = async () => {
-    console.log(this.state)
+  handleModal = (record) => {
+    const {Assess,Authenticate,PIID,PSID} = record
+    this.setState({
+      PIID,PSID,
+      isAssessPrice:Assess==="1"?true:false,
+      isAuthenticate:Authenticate==="1"?true:false,
+      isModalVisible:true
+    })
+  }
 
-    await axios.post('/addComMem',{
-      ComMemID: this.state.ComMemID,
-      ComMemName: this.state.ComMemName,
-      Gender: this.state.Gender,
-      BirthDate: this.state.BirthDate,
-      Address: this.state.Address,
-      Phone: this.state.Phone,
-      Email: this.state.Email,
-      Notes: this.state.Notes
-    }).then(response=>{
-      console.log(response);
-    }).catch(error=>{
-        console.log(error);
-    });
+  closeModal = () => {
+    this.setState({
+      PIID:'',PSID:'',
+      isAssessPrice:false,
+      isAuthenticate:false,
+      isModalVisible:false
+    })
+  }
 
+  Entering = async () => {
+    var that = this
+    const {PIID,PSID,AssessRes,AuthenRes,Notes} = this.state
+    let data = {
+      type:'entering',
+      PIID,PSID,ExpertID:store.getState().ExpertID,
+      AssessRes,AuthenRes,Notes
+    }
+    await axios({
+      method: 'post',
+      url: 'http://localhost:3000/modExpSer',
+      data: Qs.stringify(data)
+    }).then(()=>{
+      notification.open({
+        message: '消息',
+        description:
+            <div style={{whiteSpace: 'pre-wrap'}}>已成功录入评估信息并通知当行,可于信息管理-服务单管理中查看进度</div>,
+        icon: <SmileOutlined style={{color:'orange'}}/>,
+        duration: 2
+      });
+      that.setState({isModalVisible:false,AssessRes:'',AuthenRes:'',Notes:'',isAssessPrice:false,isAuthenticate:false})
+      that.getData()
+    })
 
-
-    notification.open({
-      message: 'Notification',
-      description:
-        <div style={{whiteSpace: 'pre-wrap'}}>已成功添加人员<br/>初始密码为123456</div>,
-      icon: <SmileOutlined style={{color:'orange'}}/>,
-      duration: 2
-    });
-    this.onClose();
-  };
+  }
 
   render() {
-    const { dataSource } = this.state;
+    const { isAssessPrice,isAuthenticate,dataSource,title,Specification,Documents,Discript,images,ImageVisible } = this.state;
     const components = {
       body: {
         row: EditableRow,
@@ -334,7 +298,7 @@ export default class Assessment extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>鉴定估价</Breadcrumb.Item>
           <Breadcrumb.Item>评估信息录入</Breadcrumb.Item>
         </Breadcrumb>
@@ -346,118 +310,78 @@ export default class Assessment extends Component {
             dataSource={dataSource}
             columns={columns}
             pagination={{ pageSize: 5 }}
+            onRow={record => {
+              return {
+                  onDoubleClick: event => {
+                      const { title,Specification,Documents,Discript,photopath } = record
+                      this.setState({
+                        visible:true,title,Specification,Documents,Discript,
+                        images:photopath.split(";")
+                      });
+                      //console.log(TID)
+                  },
+              };
+            }}
           />
-
         </div>
 
         <Drawer
-          title="新增商务部人员"
+          title="物品详情"
           width={720}
           onClose={this.onClose}
           visible={this.state.visible}
           bodyStyle={{ paddingBottom: 80 }}
-          extra={
-            <Space>
-              <Button onClick={this.onClose}>Cancel</Button>
-              <Button onClick={this.onSubmit} type="primary">
-                Submit
-              </Button>
-            </Space>
-          }
         >
-          <Form layout="vertical" ref={this.formRef} hideRequiredMark>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="ComMemID"
-                  label="工号"
-                  rules={[{ required: true, message: '请输入工号' }]}
-                >
-                  <Input value={this.state.ComMemID} placeholder="请输入工号" onChange={this.handleID} />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="ComMemName"
-                  label="姓名"
-                  rules={[{ required: true, message: '请输入姓名' }]}
-                >
-                  <Input value={this.state.ComMemName} placeholder="请输入姓名" onChange={this.handleName} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="Gender"
-                  label="性别"
-                  rules={[{ required: true, message: '请选择性别' }]}
-                >
-                  <Select value={this.state.Gender} onChange={this.handleGender} placeholder="选择性别">
-                    <Option value="男">男</Option>
-                    <Option value="女">女</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="BirthDate"
-                  label="出生日期"
-                  rules={[{ required: true, message: '请选择出生日期' }]}
-                >
-                  <DatePicker style={{ width: '100%' }} value={this.state.BirthDate} onChange={this.handleDate} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="Address"
-                  label="详细住址"
-                  rules={[{ required: true, message: '请输入详细住址' }]}
-                >
-                  <Input.TextArea rows={3} value={this.state.Address} onChange={this.handleAddress} placeholder="请输入详细住址" />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="Phone"
-                  label="联系电话"
-                  rules={[{ required: true, message: '请输入联系电话' }]}
-                >
-                  <Input value={this.state.Phone} onChange={this.handlePhone} placeholder="请输入联系电话" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="Email"
-                  label="邮箱地址"
-                  rules={[{ required: true, message: '请输入邮箱地址' }]}
-                >
-                  <Input value={this.state.Email} onChange={this.handleEmail} placeholder="请输入邮箱地址" />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="Notes"
-                  label="备注"
-                  rules={[
-                    {
-                      required: true,
-                      message: '请输入备注',
-                    },
-                  ]}
-                >
-                  <Input.TextArea rows={4} value={this.state.Notes} onChange={this.handleNotes} placeholder="请输入备注" />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
+          <Space size={20} align='start' style={{display:'flex',marginRight:'50px'}}>
+              <Image
+              preview={{visible:false}}
+              width={200}
+              src={images?images[0]:''}
+              onClick={() => this.setState({ImageVisible:true})}
+              />
+              <div style={{ display: 'none' }}>
+              <Image.PreviewGroup preview={{ visible:ImageVisible, onVisibleChange: vis => this.setState({ImageVisible:vis}) }}>
+                  {images.map((item,i)=>
+                      (
+                          <Image key={i} src={item} />
+                      ) 
+                  )}
+              </Image.PreviewGroup>
+              </div>
+              <Space size={5} direction="vertical" style={{marginTop:'-100px'}}>
+                  <p>物品名称 : {title}</p>
+                  <p>物品详情 : {Specification}</p>
+                  <p>可提供附件 : {Documents}</p>
+                  <p>物品描述 : {Discript}</p>
+              </Space>
+          </Space>
         </Drawer>
+        <Modal
+        title="评估结果录入"
+        visible={this.state.isModalVisible}
+        onOk={this.Entering}
+        onCancel={this.closeModal}
+        >
+          {
+            isAssessPrice?(
+              <div style={{marginBottom:'10px'}}>
+              评估价格:<InputNumber prefix="￥" min="0" step="0.01" style={{width:'130px',marginLeft:'10px'}} onChange={(e)=>this.setState({AssessRes:e})} />
+              </div>
+            ):''
+          }  
+          {
+            isAuthenticate?(
+            <div style={{marginBottom:'10px'}}>
+              鉴定结果:
+              <Select style={{width:'130px',marginLeft:'10px'}} onChange={(e)=>{this.setState({AuthenRes:e})}}>
+                <Option value="0">假</Option>
+                <Option value="1">真</Option>
+              </Select>
+            </div>
+            ):''
+          }                                    
+          <Input.TextArea rows={3} onChange={(e)=>{this.setState({Notes:e.target.value})}} placeholder="请输入备注"/>
+        </Modal>
       </div>
     )
   }

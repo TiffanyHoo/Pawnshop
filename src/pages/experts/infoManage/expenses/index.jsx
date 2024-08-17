@@ -238,7 +238,7 @@ export default class Expenses extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>信息管理</Breadcrumb.Item>
           <Breadcrumb.Item>服务费用设置</Breadcrumb.Item>
         </Breadcrumb>
@@ -261,65 +261,13 @@ export default class Expenses extends Component {
               </Button>
               <Form layout="vertical" ref={this.formRef} style={{padding: 10}} >
                 <Form.Item name="title" label="类目名称" >
-                  <Input disabled style={{width:'380px'}}/>
-                </Form.Item>
-                <Form.Item name="SpeDetail" label="规格属性">
-                  <>
-                    {tags.map((tag, index) => {
-                      const isLongTag = tag.length > 20;
-                      const tagElem = (
-                        <Tag
-                          className="edit-tag"
-                          key={tag}
-                          color="orange"
-                          onClose={() => this.handleCloseA(tag)}
-                        >
-                          <span>
-                            {isLongTag ? `${tag.slice(0, 20)}...` : tag}
-                          </span>
-                        </Tag>
-                      );
-                      return isLongTag ? (
-                        <Tooltip title={tag} key={tag}>
-                          {tagElem}
-                        </Tooltip>
-                      ) : (
-                        tagElem
-                      );
-                    })}
-                  </>
-                </Form.Item>
-                <Form.Item name="DocDetail" label="附件证明">
-                  <>
-                    {DocTags.map((tag, index) => {
-                      const isLongTag = tag.length > 20;
-                      const tagElem = (
-                        <Tag
-                          className="edit-tag"
-                          key={tag}
-                          color="orange"
-                          onClose={() => this.handleCloseB(tag)}
-                        >
-                          <span>
-                            {isLongTag ? `${tag.slice(0, 20)}...` : tag}
-                          </span>
-                        </Tag>
-                      );
-                      return isLongTag ? (
-                        <Tooltip title={tag} key={tag}>
-                          {tagElem}
-                        </Tooltip>
-                      ) : (
-                        tagElem
-                      );
-                    })}
-                  </>
+                  <Input disabled style={{width:'200px'}}/>
                 </Form.Item>
                 <Form.Item name="AuthenticateFare" label="鉴定服务定价/单件" >
-                  <InputNumber prefix="￥" min="0" step="0.01" style={{width:'380px'}} onChange={(e)=>this.setState({AuthenticateFare:e})} />
+                  <InputNumber prefix="￥" min="0" step="1.00" style={{width:'200px'}} onChange={(e)=>this.setState({AuthenticateFare:e})} />
                 </Form.Item>
                 <Form.Item name="AssessFare" label="估价服务定价/单件" >
-                  <InputNumber prefix="￥" min="0" step="0.01" style={{width:'380px'}} onChange={(e)=>this.setState({AssessFare:e})} />
+                  <InputNumber prefix="￥" min="0" step="1.00" style={{width:'200px'}} onChange={(e)=>this.setState({AssessFare:e})} />
                 </Form.Item>
               </Form>
             </Content>

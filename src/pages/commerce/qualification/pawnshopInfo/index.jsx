@@ -99,26 +99,40 @@ export default class PawnshopInfo extends Component {
 
     this.columns = [
       {
+        title: '操作',
+        dataIndex: 'operation',
+        width: '80px',
+        render: (_, record) =>
+          this.state.dataSource.length >= 1 ? (
+            <Popconfirm title="确认删除当行吗?" onConfirm={() => this.delMember(record)}>
+              <a>删除</a>
+            </Popconfirm>
+          ) : null,
+      },
+      {
         title: '当行编号',
         dataIndex: 'PSID',
         key: 'PSID',
-        width: '100px',
+        width: '90px',
         editable: false
       },
       {
         title: '当行名称',
         dataIndex: 'PSName',
-        key: 'PSName'
+        key: 'PSName',
+        width: '200px'
       },
       {
         title: '注册资本',
         dataIndex: 'RegCapital',
-        key: 'RegCapital'
+        key: 'RegCapital',
+        width: '110px'
       },
       {
         title: '成立时间',
         dataIndex: 'FoundDate',
-        key: 'FoundDate'
+        key: 'FoundDate',
+        width: '120px'
       },
       {
         title: '地址',
@@ -136,24 +150,14 @@ export default class PawnshopInfo extends Component {
       {
         title: '联系电话',
         dataIndex: 'Phone',
-        key: 'Phone'
+        key: 'Phone',
+        width: '130px'
       },
       {
         title: '法定代表人',
         dataIndex: 'PSstaffName',
         key: 'PSstaffName',
         width: '120px'
-      },
-      {
-        title: '操作',
-        dataIndex: 'operation',
-        width: '90px',
-        render: (_, record) =>
-          this.state.dataSource.length >= 1 ? (
-            <Popconfirm title="确认删除当行吗?" onConfirm={() => this.delMember(record)}>
-              <a>删除</a>
-            </Popconfirm>
-          ) : null,
       }
     ];
 
@@ -524,7 +528,7 @@ export default class PawnshopInfo extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>资质管理</Breadcrumb.Item>
           <Breadcrumb.Item>当行信息管理</Breadcrumb.Item>
         </Breadcrumb>
@@ -533,12 +537,13 @@ export default class PawnshopInfo extends Component {
             新增典当行
           </Button>
           <Table
+            size='small'
             components={components}
             rowClassName={() => 'editable-row'}
             bordered
             dataSource={dataSource}
             columns={columns}
-            pagination={{ pageSize: 5 }}
+            pagination={{ pageSize: 10 }}
             onRow={record => {
               return {
                 onDoubleClick: event => {
@@ -567,9 +572,9 @@ export default class PawnshopInfo extends Component {
           bodyStyle={{ paddingBottom: 80 }}
           extra={
             <Space>
-              <Button onClick={this.onClose}>Cancel</Button>
+              {/* <Button onClick={this.onClose}>Cancel</Button> */}
               <Button onClick={this.onSubmit} type="primary">
-                Submit
+                保存
               </Button>
             </Space>
           }

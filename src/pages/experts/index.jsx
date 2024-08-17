@@ -82,6 +82,7 @@ export default function Experts() {
             onClick={()=>{store.dispatch(createExpertAction({})); window.history.back(-1)}}>
                 退出
             </Button>
+            <p style={{float:'right',color:'white',marginRight:50}}>专家： {JSON.parse(sessionStorage.getItem("userinfo")).ExpertName}</p>
         </Header>
         <Layout>
             <Sider collapsible collapsed={state.collapsed} onCollapse={onCollapse}>
@@ -109,7 +110,7 @@ export default function Experts() {
             </Sider>
             <Layout className="site-layout">
                 <Content style={{ margin: '10px 16px' }}>
-                    <div className="site-layout-background" style={{ padding: 10, height: '80vh' }}>
+                    <div className="site-layout-background" style={{ padding: 10, height: '83vh' }}>
                         <Routes>
                             <Route path="expertservice/handleorders" element={<HandleOrders/>}/>   
                             <Route path="expertservice/assessment" element={<Assessment/>}/>    

@@ -1,5 +1,5 @@
 import React, { Component, useContext, useState, useEffect, useRef } from 'react'
-import { Breadcrumb, Table, Input, Form, Drawer, Col, Row, Tag, Tooltip } from 'antd'
+import { Breadcrumb, Table, Input, Form, Drawer, Col, Row, Tag, Tooltip, Image } from 'antd'
 import axios from 'axios'
 import '../../../../style/common.less'
 //import 'antd/dist/antd.css';
@@ -97,34 +97,40 @@ export default class PawnItems extends Component {
         title: '当物编号',
         dataIndex: 'PIID',
         key: 'PIID',
-        editable: false
+        editable: false,
+        width: '150px'
       },
       {
-        title: '类别',
+        title: '当物名称',
         dataIndex: 'title',
         key: 'title',
-        editable: false
+        editable: false,
+        width: '100px'
       },
       {
         title: '当户证件号',
         dataIndex: 'UserID',
         key: 'UserID',
-        editable: false
+        editable: false,
+        width: '170px'
       },
       {
-        title: '姓名',
+        title: '当户姓名',
         dataIndex: 'UserName',
-        key: 'UserName'
+        key: 'UserName',
+        width: '100px'
       },
       {
         title: '当行编号',
         dataIndex: 'PSID',
-        key: 'PSID'
+        key: 'PSID',
+        width: '100px'
       },
       {
         title: '当行名称',
         dataIndex: 'PSName',
-        key: 'PSName'
+        key: 'PSName',
+        width: '120px'
       },
       {
         title: '规格',
@@ -156,6 +162,7 @@ export default class PawnItems extends Component {
 
     this.state = {
       visible: false ,
+      ImageVisible: false,
       dataSource: [],
       dataShow: [],
       count: 0,
@@ -164,6 +171,7 @@ export default class PawnItems extends Component {
       SpecificationArr: [],
       SpecificationData: {},
       DocumentsArr: [],
+      images: [],
       PIID: '',
       title: '',
       UserID: '',
@@ -199,7 +207,8 @@ export default class PawnItems extends Component {
     dataSource = dataSource.map((obj,index) => {
       return {
         ...obj,
-        key: index
+        key: index,
+        images: obj.photopath.split(";")
       };
     });
 
@@ -212,7 +221,7 @@ export default class PawnItems extends Component {
   }
 
   showDrawer = async (record) => {
-    const { PIID,title,UserID,UserName,userPhone,psPhone,PSID,PSName,Specification,Documents,photopath,SpeDetail,DocDetail } = record
+    const { PIID,title,UserID,UserName,userPhone,psPhone,PSID,PSName,Specification,Documents,photopath,SpeDetail,DocDetail,images } = record
     const SpeDetailArr = SpeDetail.split(";")
     const SpecificationArr = Specification.split(";")
     let SpecificationData = {}
@@ -229,7 +238,7 @@ export default class PawnItems extends Component {
     
     this.setState({
       SpeDetailArr,SpecificationArr,SpecificationData,DocDetailArr,DocumentsArr,
-      PIID,title,UserID,UserName,userPhone,psPhone,PSID,PSName,Specification,Documents,photopath,SpeDetail,DocDetail,
+      PIID,title,UserID,UserName,userPhone,psPhone,PSID,PSName,Specification,Documents,photopath,SpeDetail,DocDetail,images,
       visible: true
     });
     setTimeout(() => {
@@ -259,7 +268,7 @@ export default class PawnItems extends Component {
   };
 
   render() {
-    const { dataShow,SpeDetailArr,DocDetailArr,SpecificationArr,SpecificationData,DocumentsArr,selectedTags,PIID } = this.state;    
+    const { ImageVisible,images,dataShow,SpeDetailArr,DocDetailArr,SpecificationArr,SpecificationData,DocumentsArr,selectedTags,PIID } = this.state;    
 
     const components = {
       body: {
@@ -292,15 +301,19 @@ export default class PawnItems extends Component {
         <Search placeholder="请输入物品信息" onSearch={this.onSearch} enterButton style={{width:'200px',margin: '16px 0',float:'right'}}/>
         <div className="site-layout-background" style={{ padding: 10 }}>
           <Table
+            size='small'
             components={components}
             rowClassName={() => 'editable-row'}
             bordered
             dataSource={dataShow}
             columns={columns}
-            pagination={{ pageSize: 5 }}
+            pagination={{ pageSize: 10 }}
             onRow={record => {
               return {
-                onDoubleClick: event => {this.showDrawer(record)}
+                onDoubleClick: event => {
+                  console.log(record)
+                  this.showDrawer(record)
+                }
               };
             }}
           />
@@ -325,7 +338,7 @@ export default class PawnItems extends Component {
               <Col span={12}>
                 <Form.Item
                   name="title"
-                  label="类目"
+                  label="当物名称"
                 >
                   <Input disabled />
                 </Form.Item>
@@ -343,7 +356,7 @@ export default class PawnItems extends Component {
               <Col span={12}>
                 <Form.Item
                   name="UserName"
-                  label="姓名"
+                  label="当户姓名"
                 >
                   <Input disabled />
                 </Form.Item>
@@ -353,7 +366,7 @@ export default class PawnItems extends Component {
               <Col span={12}>
                 <Form.Item
                   name="PSID"
-                  label="当户证件号"
+                  label="当行编号"
                 >
                   <Input disabled />
                 </Form.Item>
@@ -361,7 +374,7 @@ export default class PawnItems extends Component {
               <Col span={12}>
                 <Form.Item
                   name="PSName"
-                  label="姓名"
+                  label="当行名称"
                 >
                   <Input disabled />
                 </Form.Item>
@@ -396,6 +409,7 @@ export default class PawnItems extends Component {
                 });
                 return (
                   <Form.Item
+                    key={obj}
                     name={obj}
                     label={obj}
                     value={value}
@@ -407,7 +421,7 @@ export default class PawnItems extends Component {
             }
             <Form.Item
               name="Documents"
-              label="Documents"
+              label="附件"
             >
               <div>
               {
@@ -424,6 +438,25 @@ export default class PawnItems extends Component {
                 })        
               }
               </div>            
+            </Form.Item>
+            <Form.Item
+              label="图片"
+            >
+              <Image
+              preview={{visible:false}}
+              width={200}
+              src={images?images[0]:'https://ww1.sinaimg.cn/large/007rAy9hgy1g24by9t530j30i20i2glm.jpg'}
+              onClick={() => this.setState({ImageVisible:true})}
+              />
+              <div style={{ display: 'none' }}>
+                <Image.PreviewGroup preview={{ visible:ImageVisible, onVisibleChange: vis => this.setState({ImageVisible:vis}) }}>
+                    {images?images.map((item,i)=>
+                        (
+                            <Image key={i} src={item} />
+                        ) 
+                    ):''}
+                </Image.PreviewGroup>
+              </div>
             </Form.Item>
           </Form>
         </Drawer>

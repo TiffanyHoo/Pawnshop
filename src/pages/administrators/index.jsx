@@ -46,14 +46,15 @@ export default function Administrators() {
                 onClick={()=>{store.dispatch(createAdministratorAction({})); window.history.back(-1)}}>
                     退出
                 </Button>
+                <p style={{float:'right',color:'white',marginRight:50}}>管理员： Tiffany</p>
             </Header>
             <Layout>
                 <Sider collapsible collapsed={state.collapsed} onCollapse={onCollapse}>
                 <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline">
                     <SubMenu key="sub1" icon={<SettingOutlined />} title="系统设置">
-                        <Menu.Item key="1">
+                        {/* <Menu.Item key="1">
                             <MyNavLink replace to={`system/assessstandard`}>估价标准设置</MyNavLink>
-                        </Menu.Item>
+                        </Menu.Item> */}
                         <Menu.Item key="2">
                             <MyNavLink replace to={`system/pawndetails`}>典当类目设置</MyNavLink>
                         </Menu.Item>
@@ -69,14 +70,17 @@ export default function Administrators() {
                             <MyNavLink replace to={`infomanage/userinfo`}>用户信息管理</MyNavLink>
                         </Menu.Item>
                         <Menu.Item key="6">
-                            <MyNavLink replace to={`infomanage/expertinfo`}>专家信息管理</MyNavLink>
+                            <MyNavLink replace to={`infomanage/userinfo`}>个人信息管理</MyNavLink>
                         </Menu.Item>
+                        {/* <Menu.Item key="6">
+                            <MyNavLink replace to={`infomanage/expertinfo`}>专家信息管理</MyNavLink>
+                        </Menu.Item> */}
                     </SubMenu>
                 </Menu>
                 </Sider>
                 <Layout className="site-layout">
                     <Content style={{ margin: '10px 16px' }}>
-                        <div style={{ padding: 10, height: '80vh' }}>
+                        <div style={{ padding: 10, height: '83vh' }}>
                             <Routes>
                                 <Route path="system/assessstandard" element={<AssessStandard/>}/>   
                                 <Route path="system/pawndetails" element={<PawnDetails/>}/>    

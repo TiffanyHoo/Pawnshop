@@ -98,6 +98,23 @@ export default class CommerceMember extends Component {
 
     this.columns = [
       {
+        title: '操作',
+        dataIndex: 'operation',
+        width: '150px',
+        render: (_, record) =>
+          this.state.dataSource.length >= 1 ? (
+            <div>
+              <Popconfirm title="确认初始化密码吗?" onConfirm={() => this.initialPwd(record)}>
+                <a>初始化密码</a>
+              </Popconfirm>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <Popconfirm title="确认删除人员吗?" onConfirm={() => this.delMember(record)}>
+                <a>删除</a>
+              </Popconfirm>
+            </div>
+          ) : null
+      },
+      {
         title: '工号',
         dataIndex: 'ComMemID',
         key: 'ComMemID',
@@ -153,24 +170,7 @@ export default class CommerceMember extends Component {
             {Email}
           </Tooltip>
         ),
-      },
-      {
-        title: '操作',
-        dataIndex: 'operation',
-        width: '160px',
-        render: (_, record) =>
-          this.state.dataSource.length >= 1 ? (
-            <div>
-              <Popconfirm title="确认初始化密码吗?" onConfirm={() => this.initialPwd(record)}>
-                <a>初始化密码</a>
-              </Popconfirm>
-              &nbsp;&nbsp;&nbsp;&nbsp;
-              <Popconfirm title="确认删除人员吗?" onConfirm={() => this.delMember(record)}>
-                <a>删除</a>
-              </Popconfirm>
-            </div>
-          ) : null
-      },
+      }
     ];
 
     this.state = {
@@ -490,7 +490,7 @@ export default class CommerceMember extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>信息管理</Breadcrumb.Item>
           <Breadcrumb.Item>商务部人员管理</Breadcrumb.Item>
         </Breadcrumb>
@@ -499,12 +499,13 @@ export default class CommerceMember extends Component {
             新增人员
           </Button>
           <Table
+            size='small'
             components={components}
             rowClassName={() => 'editable-row'}
             bordered
             dataSource={dataSource}
             columns={columns}
-            pagination={{ pageSize: 5 }}
+            pagination={{ pageSize: 10 }}
             onRow={record => {
               return {
                 onDoubleClick: event => {

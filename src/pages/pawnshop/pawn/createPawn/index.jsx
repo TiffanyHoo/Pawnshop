@@ -172,7 +172,7 @@ export default class CreatePawn extends Component {
           ...this.getColumnSearchProps('ApplyID')
       },    
       {
-        title: '物品',
+        title: '当品',
         dataIndex: 'things',
         key: 'things',
         width: '200px',
@@ -186,7 +186,7 @@ export default class CreatePawn extends Component {
         ),
       },     
       {  
-          title: '物品数量',
+          title: '当品数量',
           dataIndex: 'Quantity',
           key: 'Quantity',
           width: '90px',
@@ -255,6 +255,7 @@ export default class CreatePawn extends Component {
     this.state = {
       previewVisible: false,
       isModalVisible: false,
+      isSearch: false,
       visible: false ,
       visible_modal: false,
       childrenDrawer: false,
@@ -313,7 +314,9 @@ export default class CreatePawn extends Component {
       NotaryFare: 0,
       InsuranceFare: 0,
       OtherFare: 0,
-      ENotes: ''
+      ENotes: '',
+      
+      searchID:'' //查找当品id
 
     };
   }
@@ -437,7 +440,7 @@ export default class CreatePawn extends Component {
     })
   }
 
-  //获取物品信息
+  //获取当品信息
   getThings = async (TID) => {
     var that = this
     const things = TID.split(";")
@@ -806,6 +809,7 @@ export default class CreatePawn extends Component {
       PriceOnSale: '',
       canDistribute: '',
       title: '',
+      itemName:'',
       SpeDetail: '',
       DocDetail: '',
       dataSource1:[]
@@ -826,7 +830,6 @@ export default class CreatePawn extends Component {
       url: 'http://localhost:3000/createPawn',
       data: Qs.stringify(data)
     });
-    return
     const flag = await this.onSubmit2()
     console.log(flag)
     if(flag){
@@ -836,7 +839,7 @@ export default class CreatePawn extends Component {
       notification.open({
         message: '消息',
         description:
-          <div style={{whiteSpace: 'pre-wrap'}}>已成功建当，当单编号为{PTID},可于典当信息管理模块中查看~</div>,
+          <div style={{whiteSpace: 'pre-wrap'}}>已成功建当，当单编号为{PTID},可于当单信息管理模块中查看~</div>,
         icon: <SmileOutlined style={{color:'orange'}}/>,
         duration: 2
       });
@@ -859,11 +862,11 @@ export default class CreatePawn extends Component {
     const {UserID,dataSource1} = this.state;
     let flag = true
     for (const item of dataSource1) {
-      const {PIID,CID,Specification,Documents,photopath,Quantity,canDistribute} = item;
+      const {PIID,CID,itemName,Specification,Documents,photopath,Quantity,canDistribute} = item;
 
       let data = {
         step: 2,
-        PIID,CID,UserID,PSID:store.getState().PSID,
+        PIID,CID,itemName,UserID,PSID:store.getState().PSID,
         Specification,Documents,photopath,Quantity,canDistribute
       }
 
@@ -965,7 +968,7 @@ export default class CreatePawn extends Component {
       const ChildrenDrawerData =this.state.dataSource1.find(function (obj) {
         return obj.key === key;
       })
-      const {title,fileList,SpeDetail,Specification,DocDetail,Documents,PIID,CID,Quantity,AssessPrice,Rate,Amount,canDistribute} = ChildrenDrawerData
+      const {itemName,title,fileList,SpeDetail,Specification,DocDetail,Documents,PIID,CID,Quantity,AssessPrice,Rate,Amount,canDistribute} = ChildrenDrawerData
       let category = [];
       for(let i=3;i<=CID.length;i=i+2){
         category.push(CID.substring(0,i))
@@ -987,14 +990,15 @@ export default class CreatePawn extends Component {
       const DocumentsArr = Documents.split(";")
       selectedTags = DocumentsArr
       this.setState({
-        PIID,Quantity,AssessPrice,Rate,Amount,canDistribute:canDistribute?canDistribute:'0',CID,title,
+        PIID,Quantity,AssessPrice,Rate,Amount,canDistribute:canDistribute?canDistribute:'0',CID,title,itemName,
         ChildrenDrawerData,SpeDetailArr,DocDetailArr,SpecificationArr,DocumentsArr,SpecificationData,selectedTags,SpeDetail,Specification,DocDetail,Documents,
         category,fileList,childrenDrawer:true
       })
       setTimeout(() => {
         this.formRef2.current.resetFields();
         this.formRef2.current.setFieldsValue({
-          PIID,Quantity,AssessPrice,Rate,Amount,canDistribute:canDistribute?canDistribute:'0',
+          PIID,Quantity,AssessPrice,Rate,Amount,itemName,
+          canDistribute:canDistribute?canDistribute:'0',
           CID:category,
           ...SpecificationData
         })
@@ -1113,7 +1117,7 @@ export default class CreatePawn extends Component {
 
   //保存当物
   saveItem = () => {
-    const {TotalPrice,category,fileList,dataSource1,SpeDetail,DocDetail,PIID,CID,title,SpecificationData,Documents,Quantity,AssessPrice,Rate,Amount,canDistribute} = this.state;
+    const {TotalPrice,category,fileList,dataSource1,SpeDetail,DocDetail,PIID,CID,itemName,title,SpecificationData,Documents,Quantity,AssessPrice,Rate,Amount,canDistribute} = this.state;
 
     let str = '';
     for (var item in SpecificationData) {
@@ -1131,7 +1135,7 @@ export default class CreatePawn extends Component {
 
 
     const pawnitem={
-      PIID,CID,title,Specification:str,Documents,Quantity,AssessPrice,Rate,Amount,photopath,canDistribute,
+      PIID,CID,itemName,title,Specification:str,Documents,Quantity,AssessPrice:AssessPrice?AssessPrice:0,Rate:Rate?Rate:0,Amount:Amount?Amount:0,photopath,canDistribute,
       SpeDetail,DocDetail,fileList,category,
       state:1,key:PIID
     }
@@ -1144,7 +1148,7 @@ export default class CreatePawn extends Component {
 
     this.setState({
       dataSource1,
-      TotalPrice:TotalPrice+1*Amount
+      TotalPrice:Amount?TotalPrice+1*Amount:TotalPrice
     });
 
     this.closeChildDrawer();
@@ -1184,6 +1188,40 @@ export default class CreatePawn extends Component {
       DocDetail:'',
       category:''
     })
+  }
+
+  //搜索当品
+  searchItem = () =>{
+    const UIID = this.state.searchID
+    var that = this;
+    axios.get('/getUserItems', {
+      params: {
+        UIID,
+        type: 'PSgetItem'
+      }
+    }).then(response=>{
+        if(response.data.length === 0){
+          that.setState({
+            searchID:'',isSearch:false
+          })
+          message.warning("查无此当品编号");
+        }else{
+          const {photopath} = response.data[0];
+          const fileList = photopath.split(";").map((obj,index) => {
+            return {
+                url: obj,
+                uid: index,
+                key: index
+            };
+          });
+          const dataSource1=[{...response.data[0],PIID:UIID,key:UIID,fileList}]
+          that.setState({
+            dataSource1,isSearch:false
+          })
+          this.showChildrenDrawer(UIID)
+          message.success("查询成功！已录入信息~");
+        }
+    });
   }
 
 
@@ -1270,27 +1308,27 @@ export default class CreatePawn extends Component {
           bodyStyle={{ paddingBottom: 80 }}
           extra={
             <Space>
-              <Button onClick={this.onClose}>取消</Button>
+              {/* <Button onClick={this.onClose}>取消</Button> */}
               <Button onClick={this.onSubmit} type="primary">确定</Button>
             </Space>
           }
         >
-          <Form layout="vertical" ref={this.formRef} hideRequiredMark
+          <Form layout="horizontal" ref={this.formRef} hideRequiredMark
           initialValues={{UserID,UserName,Gender,Address,Phone,Email,Wechat}}
           >
-            <Row gutter={16}>
-              <Col span={12}>
+            <Row gutter={16} className="myRow">
+              <Col span={8}>
                 <Form.Item
                   name="PTID"
-                  label="当票编号"
+                  label="当票编号："
                 >
                   <Input disabled onChange={this.handlePTID} />
                 </Form.Item>
               </Col>
-              <Col span={12}>
+              <Col span={16}>
                 <Form.Item
                   name="day"
-                  label="典当期限"
+                  label="典当期限："
                   rules={[{ required: true, message: '请选择典当期限' }]}
                 >
                   由&nbsp;&nbsp;{moment(new Date()).format('YYYY-MM-DD')}&nbsp;&nbsp;起共
@@ -1302,11 +1340,11 @@ export default class CreatePawn extends Component {
             </Row>
             <hr/>
             <p style={{margin:0,minHeight:'30px'}}>当户信息</p>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={8}>
                 <Form.Item
                   name="UserID"
-                  label="当户证件号"
+                  label="当户证件号："
                   rules={[{ required: true, message: '请输入当户证件号' }]}
                 >
                   <Input placeholder="请输入当户证件号" onChange={this.handleUserID} onPressEnter={this.searchUserInfo}/>
@@ -1315,7 +1353,7 @@ export default class CreatePawn extends Component {
               <Col span={8}>
                 <Form.Item
                   name="UserName"
-                  label="当户姓名"
+                  label="当户姓名："
                   rules={[{ required: true, message: '请输入当户姓名' }]}
                 >
                   <Input placeholder="请输入当户姓名" onChange={this.handleUserName} />
@@ -1324,7 +1362,7 @@ export default class CreatePawn extends Component {
               <Col span={8}>
                 <Form.Item
                 name="Gender"
-                label="性别"
+                label="性&nbsp;&nbsp;&nbsp;&nbsp;别："
                 >
                   <Select value={this.state.Gender} onChange={this.handleGender} placeholder="请选择性别">
                     <Option value="0">男</Option>
@@ -1333,20 +1371,11 @@ export default class CreatePawn extends Component {
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
-              <Col span={8}>
-                <Form.Item
-                  name="Phone"
-                  label="联系电话"
-                  rules={[{ required: true, message: '请输入联系电话' }]}
-                >
-                  <Input value={this.state.Phone} onChange={this.handlePhone} placeholder="请输入联系电话" />
-                </Form.Item>
-              </Col>
+            <Row gutter={16} className="myRow">
               <Col span={8}>
                 <Form.Item
                   name="Email"
-                  label="邮箱地址"
+                  label="邮 箱 地 址："
                   rules={[{ required: true, message: '请输入邮箱地址' }]}
                 >
                   <Input value={this.state.Email} onChange={this.handleEmail} placeholder="请输入邮箱地址" />
@@ -1354,46 +1383,56 @@ export default class CreatePawn extends Component {
               </Col>
               <Col span={8}>
                 <Form.Item
+                  name="Phone"
+                  label="联系电话："
+                  rules={[{ required: true, message: '请输入联系电话' }]}
+                >
+                  <Input value={this.state.Phone} onChange={this.handlePhone} placeholder="请输入联系电话" />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item
                   name="Wechat"
-                  label="微信号"
+                  label="微信号："
                   rules={[{ required: true, message: '请输入微信号' }]}
                 >
                   <Input value={this.state.Wechat} onChange={this.handleWechat} placeholder="请输入微信号" />
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={24}>
                 <Form.Item
                   name="Address"
-                  label="详细住址"
+                  label="详 细 住 址："
                   rules={[{ required: true, message: '请输入详细住址' }]}
                 >
-                  <Input.TextArea rows={2} value={this.state.Address} onChange={this.handleAddress} placeholder="请输入详细住址" />
+                  <Input value={this.state.Address} onChange={this.handleAddress} placeholder="请输入详细住址" />
                 </Form.Item>
               </Col>
             </Row>
             <hr/>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={24}>
                 <Form.Item
                   label="当单详情"
                 >
-                  <p style={{margin:0,minHeight:0}}>当物份数 : {this.state.dataSource1.length}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;总估价 : {this.state.TotalPrice}</p>
+                  <p style={{margin:0,minHeight:0}}>当物份数 : {this.state.dataSource1.length}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;总估价 : {this.state.TotalPrice}
+                    <Button style={{marginLeft:'20px'}} type='primary' onClick={()=>{this.showChildrenDrawer('add')}}>新增当物</Button>  
+                  </p>       
                 </Form.Item>
               </Col>
             </Row>  
-            <Button type='primary' onClick={()=>{this.showChildrenDrawer('add')}}>新增当物</Button>  
             {dataSource1.map((obj,index) => {
-              const {PIID,title,Amount,Quantity,key} = obj
+              const {PIID,itemName,title,Amount,Quantity,key} = obj
               return (
-                <Row gutter={16} key={key}>
+                <Row gutter={16} key={key} className="detailRow">
                   <Col span={24}>
                     <Form.Item
                       label={index+1*1}
                     >
                       <Space size={6} align="baseline">
-                        <p>当物编号 : {PIID}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当物名称 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当价 : {Amount?Amount:0}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数量 : {Quantity}</p>
+                        <p>当物编号 : {PIID}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当物名称 : {itemName}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当物类别 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当价 : {Amount?Amount:0}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数量 : {Quantity}</p>
                         <Button type="link" onClick={()=>{this.showChildrenDrawer(key)}}>编辑</Button>
                       </Space>
                     </Form.Item>
@@ -1402,7 +1441,7 @@ export default class CreatePawn extends Component {
               );
             })}
             <hr/>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={24}>
                 <Form.Item
                   name="expense"
@@ -1412,11 +1451,11 @@ export default class CreatePawn extends Component {
                 </Form.Item>
               </Col>
             </Row>  
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={8}>
                 <Form.Item
                   name="Interest"
-                  label="利&nbsp;&nbsp;&nbsp;&nbsp;息"
+                  label="利&nbsp;&nbsp;&nbsp;&nbsp;息："
                 >
                   <InputNumber style={{width:'100%'}} prefix="￥" defaultValue="0" min="0" step="1.00" onChange={(e)=>{this.setState({Interest:e});this.handleFare();}}/>
                 </Form.Item>
@@ -1424,7 +1463,7 @@ export default class CreatePawn extends Component {
               <Col span={8}>
                 <Form.Item
                   name="StoreFare"
-                  label="仓管费"
+                  label="仓管费："
                 >
                   <InputNumber style={{width:'100%'}} prefix="￥" defaultValue="0" min="0" step="1.00" onChange={(e)=>{this.setState({StoreFare:e});this.handleFare();}}/>
                 </Form.Item>
@@ -1432,17 +1471,17 @@ export default class CreatePawn extends Component {
               <Col span={8}>
                 <Form.Item
                   name="OverdueFare"
-                  label="逾期费"
+                  label="逾期费："
                 >
                   <InputNumber style={{width:'100%'}} prefix="￥" defaultValue="0" min="0" step="1.00" onChange={(e)=>{this.setState({OverdueFare:e});this.handleFare();}}/>
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={8}>
                 <Form.Item
                   name="FreightFare"
-                  label="物流费"
+                  label="物流费："
                 >
                   <InputNumber style={{width:'100%'}} prefix="￥" defaultValue="0" min="0" step="1.00" onChange={(e)=>{this.setState({FreightFare:e});this.handleFare();}}/>
                 </Form.Item>
@@ -1450,7 +1489,7 @@ export default class CreatePawn extends Component {
               <Col span={8}>
                 <Form.Item
                   name="AuthenticateFare"
-                  label="鉴定费"
+                  label="鉴定费："
                 >
                   <InputNumber style={{width:'100%'}} prefix="￥" defaultValue="0" min="0" step="1.00" onChange={(e)=>{this.setState({AuthenticateFare:e});this.handleFare();}}/>
                 </Form.Item>
@@ -1458,17 +1497,17 @@ export default class CreatePawn extends Component {
               <Col span={8}>
                 <Form.Item
                   name="AssessFare"
-                  label="估价费"
+                  label="估价费："
                 >
                   <InputNumber style={{width:'100%'}} prefix="￥" defaultValue="0" min="0" step="1.00" onChange={(e)=>{this.setState({AssessFare:e});this.handleFare();}}/>
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={8}>
                 <Form.Item
                   name="NotaryFare"
-                  label="公证费"
+                  label="公证费："
                 >
                   <InputNumber style={{width:'100%'}} prefix="￥" defaultValue="0" min="0" step="1.00" onChange={(e)=>{this.setState({NotaryFare:e});this.handleFare();}}/>
                 </Form.Item>
@@ -1476,7 +1515,7 @@ export default class CreatePawn extends Component {
               <Col span={8}>
                 <Form.Item
                   name="InsuranceFare"
-                  label="保险费"
+                  label="保险费："
                 >
                   <InputNumber style={{width:'100%'}} prefix="￥" defaultValue="0" min="0" step="1.00" onChange={(e)=>{this.setState({InsuranceFare:e});this.handleFare();}}/>
                 </Form.Item>
@@ -1484,24 +1523,24 @@ export default class CreatePawn extends Component {
               <Col span={8}>
                 <Form.Item
                   name="OtherFare"
-                  label="其他费"
+                  label="其他费："
                 >
                   <InputNumber style={{width:'100%'}} prefix="￥" defaultValue="0" min="0" step="1.00" onChange={(e)=>{this.setState({OtherFare:e});this.handleFare();}}/>
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={24}>
                 <Form.Item
                   name="ENotes"
-                  label="费用备注"
+                  label="费用备注："
                 >
-                  <Input.TextArea rows={2} value={this.state.ENotes} onChange={(e)=>this.setState({ENotes:e.target.value})} placeholder="请输入费用备注" />
+                  <Input value={this.state.ENotes} onChange={(e)=>this.setState({ENotes:e.target.value})} placeholder="请输入费用备注" />
                 </Form.Item>
               </Col>
             </Row>
             <hr/>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={24}>
                 <Form.Item
                   name="payment"
@@ -1511,20 +1550,20 @@ export default class CreatePawn extends Component {
                 </Form.Item>
               </Col>
             </Row>  
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={24}>
                 <Form.Item
                   name="Notes"
-                  label="备注"
+                  label="当单备注："
                 >
-                  <Input.TextArea rows={2} value={this.state.Notes} onChange={(e)=>this.setState({Notes:e.target.value})} placeholder="请输入备注内容" />
+                  <Input value={this.state.Notes} onChange={(e)=>this.setState({Notes:e.target.value})} placeholder="请输入备注内容" />
                 </Form.Item>
               </Col>
             </Row>
           </Form>
           <Drawer
             title="当物详情"
-            width={360}
+            width={330}
             closable
             onClose={this.closeChildDrawer}
             visible={this.state.childrenDrawer}
@@ -1539,9 +1578,12 @@ export default class CreatePawn extends Component {
               </Space>
             }
           >
-            <Form layout="vertical" ref={this.formRef2} hideRequiredMark
+            <Form layout="horizontal" ref={this.formRef2} hideRequiredMark
             initialValues={{PIID,...SpecificationData,Documents:selectedTags,canDistribute:'0'}}
             >
+              <Tooltip title="查找当品">
+                <Button type="primary" shape="circle" icon={<SearchOutlined />} onClick={()=>this.setState({isSearch:true,searchID:''})} style={{float:'right',marginLeft:'5px'}}/>
+              </Tooltip>    
               <Form.Item
                 name="PIID"
                 label="当品编号"
@@ -1550,9 +1592,16 @@ export default class CreatePawn extends Component {
                 <Input disabled />
               </Form.Item>
               <Form.Item
-                name="CID"
+                name="itemName"
                 label="当物名称"
-                rules={[{ required: true, message: '请选择当物名称' }]}
+                rules={[{ required: true, message: '请输入当物名称' }]}
+              >
+                <Input onChange={(e)=>this.setState({itemName:e.target.value})}/>
+              </Form.Item>
+              <Form.Item
+                name="CID"
+                label="当物类别"
+                rules={[{ required: true, message: '请选择当物类别' }]}
               >
                 <Cascader
                   options={categories}
@@ -1562,7 +1611,7 @@ export default class CreatePawn extends Component {
                   value={this.state.category}
                 />
               </Form.Item>
-              <p>物品详情</p>
+              <p style={{fontWeight:600,color:'orange'}}>当品详情</p>
               {
                 SpeDetailArr.map((obj,index)=>{
                   let value = ''
@@ -1618,7 +1667,8 @@ export default class CreatePawn extends Component {
               </Form.Item>
               <Form.Item
                 name="Rate"
-                label="折当率%"
+                label="折当率"
+                suffix="%"
                 rules={[{ required: true, message: '请输入折当率，如100.00' }]}
               >
                 <Input placeholder="请输入折当率，如100.00" onChange={this.handleRate}/>
@@ -1630,7 +1680,7 @@ export default class CreatePawn extends Component {
                 <Input disabled placeholder="请输入估价与折当率" onChange={(e)=>this.setState({Amount:e.target.value})}/>
               </Form.Item>
               <Form.Item
-                label="上传物品照片"
+                label="照片"
                 valuePropName="fileList"
                 getValueFromEvent={normFile}
               >
@@ -1785,7 +1835,7 @@ export default class CreatePawn extends Component {
                   name="ENotes"
                   label="费用备注"
                 >
-                  <Input.TextArea rows={2} value={this.state.ENotes} onChange={this.handleENotes} placeholder="请输入费用备注" />
+                  <Input value={this.state.ENotes} onChange={this.handleENotes} placeholder="请输入费用备注" />
                 </Form.Item>
               </Col>
             </Row>
@@ -1794,165 +1844,9 @@ export default class CreatePawn extends Component {
         <Modal title="当户身份核验" width={260} visible={isModalVisible} onOk={this.handleCheck} onCancel={this.handleClose}>
           <Input value={checkid} onChange={(e)=>{this.setState({checkid:e.target.value})}} placeholder="请输入当户身份证后四位"/>
         </Modal>
-        {/* <Modal title="建当处理" width={800} visible={isModalVisible} onOk={this.handleOk} onCancel={this.handleCancel}>
-          <Form ref={this.formRef2} hideRequiredMark
-          initialValues={{UserID,UserName,Gender,Address,Phone,Email,Wechat}}
-          >
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="PTID"
-                  label="当票编号"
-                  rules={[{ required: true, message: '请输入当票编号' }]}
-                >
-                  <Input placeholder="请输入当票编号" onChange={this.handlePTID} />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="PawnDate"
-                  label="建当日期"
-                  rules={[{ required: true, message: '请选择典当期限' }]}
-                >
-                  <RangePicker style={{width:'100%'}} disabledDate={(current)=>{return current && current <moment().subtract(1, "days")}} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="UserName"
-                  label="当户姓名"
-                  rules={[{ required: true, message: '请输入当户姓名' }]}
-                >
-                  <Input placeholder="请输入当户姓名" onChange={this.handleUserName} />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="UserID"
-                  label="当户证件号"
-                  rules={[{ required: true, message: '请输入当户证件号' }]}
-                >
-                  <Input placeholder="请输入当户证件号" onChange={this.handleUserID} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="detail"
-                  label="当单详情"
-                >
-                  <p style={{margin:'0 auto', color:'orange'}}>&nbsp;&nbsp;当物数量 : {this.state.Quantity}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;总估价 : {this.state.TotalPrice}</p>
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="Notes"
-                  label="当单标注"
-                >
-                  <Input.TextArea rows={2} value={this.state.Notes} onChange={this.handleNotes} placeholder="请输入当单标注内容" />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={24}>
-                <p>费用单详情</p>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={8}>
-                <Form.Item
-                  name="Interest"
-                  label="利&nbsp;&nbsp;&nbsp;&nbsp;息"
-                >
-                  <InputNumber prefix="￥" defaultValue="0" min="0" step="1.00" onChange={this.handleInterest}/>
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  name="StoreFare"
-                  label="仓管费"
-                >
-                  <InputNumber prefix="￥" defaultValue="0" min="0" step="1.00" onChange={this.handleStoreFare}/>
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  name="OverdueFare"
-                  label="逾期费"
-                >
-                  <InputNumber prefix="￥" defaultValue="0" min="0" step="1.00" onChange={this.handleOverdueFare}/>
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={8}>
-                <Form.Item
-                  name="FreightFare"
-                  label="物流费"
-                >
-                  <InputNumber prefix="￥" defaultValue="0" min="0" step="1.00" onChange={this.handleFreightFare}/>
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  name="AuthenticateFare"
-                  label="鉴定费"
-                >
-                  <Input onChange={this.handleAuthenticateFare} />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  name="AssessFare"
-                  label="估价费"
-                >
-                  <Input onChange={this.handleAssessFare} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={8}>
-                <Form.Item
-                  name="NotaryFare"
-                  label="公证费"
-                >
-                  <Input onChange={this.handleNotaryFare} />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  name="InsuranceFare"
-                  label="保险费"
-                >
-                  <Input onChange={this.handleInsuranceFare} />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  name="OtherFare"
-                  label="其他费"
-                >
-                  <Input onChange={this.handleOtherFare} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="ENotes"
-                  label="费用备注"
-                >
-                  <Input.TextArea rows={2} value={this.state.ENotes} onChange={this.handleENotes} placeholder="请输入费用备注" />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        </Modal> */}
+        <Modal title="查找当品" width={260} visible={this.state.isSearch} onOk={this.searchItem} onCancel={()=>this.setState({isSearch:false})}>
+          <Input value={this.state.searchID} onChange={(e)=>{this.setState({searchID:e.target.value})}} placeholder="输入当品编号快速录入信息"/>
+        </Modal>
       </div>
     )
   }

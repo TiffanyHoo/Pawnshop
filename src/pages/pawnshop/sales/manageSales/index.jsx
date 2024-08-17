@@ -1,6 +1,7 @@
 import React, { Component, useContext, useState, useEffect, useRef } from 'react'
-import { Breadcrumb, Table, Input, Button, Switch, Form, Drawer, Col, Row, Select, DatePicker, Space, Tooltip, notification, Tag, Popconfirm, Steps } from 'antd'
+import { Breadcrumb, Table, Input, Button, Form, Drawer, Col, Row, Select, Space, Tooltip, notification, Tag, Popconfirm, Steps, message, Upload, Modal } from 'antd'
 import axios from 'axios'
+import Qs from 'qs'
 import store from '../../../../redux/store'
 import '../../../../style/common.less'
 //import 'antd/dist/antd.css';
@@ -93,6 +94,25 @@ const EditableCell = ({
   return <td {...restProps}>{childNode}</td>;
 };
 
+const normFile = (e) => {
+  console.log('Upload event:', e);
+
+  if (Array.isArray(e)) {
+    return e;
+  }
+
+  return e && e.fileList;
+};
+
+function getBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
 
 export default class ManageSales extends Component {
   constructor(props) {
@@ -106,7 +126,7 @@ export default class ManageSales extends Component {
         width: '10%'
       },
       {
-        title: '顾客证件号',
+        title: '证件号码',
         dataIndex: 'UserID',
         key: 'UserID',
         editable: false
@@ -149,7 +169,7 @@ export default class ManageSales extends Component {
         width: '10%'
       },
       {
-        title: '审核操作',
+        title: '操作',
         dataIndex: 'operation',
         width: '10%',
         render: (_, record) =>
@@ -200,7 +220,9 @@ export default class ManageSales extends Component {
       PayState: '',
       canDistribute: '',
       state: '',
-      Discript: ''
+      Discript: '',
+      fileList:[],
+      previewTitle:''
     };
   }
 
@@ -358,24 +380,36 @@ export default class ManageSales extends Component {
         title: '提货方式',
         dataIndex: 'PickUpWay',
         key: 'PickUpWay',
-        width: '10%'
+        width: '10%',
+        render: (_, record) =>
+          record.PickUpWay === "1" ? (
+              <p>自提</p>
+          ) : <p>邮寄</p>
       },
       {
         title: '支付方式',
         dataIndex: 'PayWay',
         key: 'PayWay',
-        width: '10%'
+        width: '10%',
+        render: (_, record) =>
+          record.PayWay === "1" ? (
+              <p>线下</p>
+          ) : <p>线上</p>
       },
       {
         title: '支付状态',
         dataIndex: 'PayState',
         key: 'PayState',
-        width: '10%'
+        width: '10%',
+        render: (_, record) =>
+          record.PayState === "1" ? (
+              <p>已支付</p>
+          ) : <p>未支付</p>
       },
     ];
 
     return (
-      <Table columns={columns1} dataSource={this.state.dataSource1} pagination={false} 
+      <Table size='small' columns={columns1} dataSource={this.state.dataSource1} pagination={false} 
       expandable={{
         expandedRowRender: record => 
           <Steps current={parseInt(record.state)+1} status={record.ReturnOrder==="0"?"process":"error"} style={{padding:'0 50px'}}>
@@ -451,8 +485,9 @@ export default class ManageSales extends Component {
   };
 
   showChildrenDrawer = (record) => {
+
     this.getChildrenDetail(this.state.OrderID,record.PIID)
-    const {SpeDetail,DocDetail,Specification,Documents} = record
+    const {SpeDetail,DocDetail,Specification,Documents,photopath} = record
     let selectedTags = [];
 
     const SpeDetailArr = SpeDetail.split(";")
@@ -466,14 +501,22 @@ export default class ManageSales extends Component {
         }
       });
     })
-    console.log(SpecificationData)
+    // console.log(SpecificationData)
     const DocDetailArr = DocDetail.split(";")
     const DocumentsArr = Documents.split(";")
     selectedTags = DocumentsArr
-    console.log(selectedTags)
+    // console.log(selectedTags)
+    let fileList=photopath.split(";")
+    fileList=fileList.map((obj,index) => {
+      return {
+          url: obj,
+          uid: index,
+          key: index
+      };
+    });
     this.setState({
       ...record,SpeDetailArr,DocDetailArr,SpecificationArr,DocumentsArr,SpecificationData,selectedTags,
-      childrenDrawer: true
+      childrenDrawer: true,fileList
     });
   };
 
@@ -500,7 +543,9 @@ export default class ManageSales extends Component {
       Amount: '',
       canDistribute: '',
       state: '',
-      Discript: ''
+      Discript: '',
+      fileList: [],
+      previewTitle:''
     });
   };
 
@@ -536,8 +581,45 @@ export default class ManageSales extends Component {
     this.onClose();
   };
 
+  handleCancel = () => this.setState({ previewVisible: false });
+
+  handlePreview = async file => {
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj);
+    }
+
+    this.setState({
+      previewImage: file.url || file.preview,
+      previewVisible: true,
+      previewTitle: file.name || file.url.substring(file.url.lastIndexOf('/') + 1),
+    });
+  };
+
+  handleImgChange = ({ file, fileList }) => {
+    if (file.status === 'done') { 
+      const newList = fileList.map((v)=>{
+        if(v.uid===file.uid){
+          v.url='http://localhost:8080/filepath/item/'+file.response.targetfile
+        }
+        return v
+      })
+      this.setState({
+        photopath: newList[0].url
+      })
+      message.success('上传图片成功')
+    } else if (file.status === 'removed') { 
+        // const result = await reqDeleteImg(file.name)
+        message.success('删除图片成功！')
+    }else if (file.status === 'error') { 
+        message.error('图片编辑失败！')
+    }else{
+
+    }
+    this.setState({ fileList })
+  }
+
   render() {
-    const { expandedRowKeys,dataSource,dataSource1,SpeDetailArr,SpecificationArr,DocDetailArr,SpecificationData,selectedTags,OrderID,PIID,title,Quantity,photopath,canDistribute,Price,PickUpWay,PayWay,PickUpCode,PayState,Notes,UserID,UserName,OrderDate,state,Address,num,Amount,Discript } = this.state;
+    const { previewVisible,previewImage,previewTitle,fileList,expandedRowKeys,dataSource,dataSource1,SpeDetailArr,SpecificationArr,DocDetailArr,SpecificationData,selectedTags,OrderID,PIID,title,Quantity,photopath,canDistribute,Price,PickUpWay,PayWay,PickUpCode,PayState,Notes,UserID,UserName,OrderDate,state,Address,num,Amount,Discript } = this.state;
     const components = {
       body: {
         row: EditableRow,
@@ -561,16 +643,24 @@ export default class ManageSales extends Component {
       };
     });
 
+    const uploadButton = (
+      <div>
+        <PlusOutlined />
+        <div style={{ marginTop: 8 }}>Upload</div>
+      </div>
+    );
+
     const expandedRowRender = this.expandedRowRender
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
-          <Breadcrumb.Item>销售管理</Breadcrumb.Item>
-          <Breadcrumb.Item>销售信息管理</Breadcrumb.Item>
+        <Breadcrumb style={{ margin: '10px 0' }}>
+          <Breadcrumb.Item>当物商城</Breadcrumb.Item>
+          <Breadcrumb.Item>订单信息管理</Breadcrumb.Item>
         </Breadcrumb>
         <div className="site-layout-background" style={{ padding: 10 }}>
           <Table
+            size="small"
             components={components}
             rowClassName={() => 'editable-row'}
             bordered
@@ -597,14 +687,14 @@ export default class ManageSales extends Component {
           bodyStyle={{ paddingBottom: 80 }}
           extra={
             <Space>
-              <Button onClick={this.onClose}>Cancel</Button>
+              {/* <Button onClick={this.onClose}>Cancel</Button> */}
               <Button onClick={this.onSubmit} type="primary">
-                Submit
+                确认
               </Button>
             </Space>
           }
         >
-          <Form layout="vertical" ref={this.formRef} hideRequiredMark
+          <Form layout="horizontal" ref={this.formRef} hideRequiredMark
           initialValues={{OrderID,UserID,UserName,OrderDate,Address,Discript,num,canDistribute,...SpecificationData,Documents:selectedTags}}
           >
             <Form.Item
@@ -616,7 +706,7 @@ export default class ManageSales extends Component {
             </Form.Item>
             <Form.Item
               name="UserID"
-              label="顾客证件号"
+              label="证件号码"
             >
               <Input value={UserID} />
             </Form.Item>
@@ -669,13 +759,21 @@ export default class ManageSales extends Component {
             closable
             onClose={()=>this.setState({childrenDrawer:false})}
             visible={this.state.childrenDrawer}
+            extra={
+              <Space>
+                {/* <Button onClick={this.onClose}>Cancel</Button> */}
+                <Button type="primary">
+                  保存
+                </Button>
+              </Space>
+            }
           >
-            <Form layout="vertical" ref={this.formRef2} hideRequiredMark
+            <Form layout="horizontal" ref={this.formRef2} hideRequiredMark
             initialValues={{PIID,title,Price,Quantity,canDistribute,PickUpWay,PickUpCode,PayWay,PayState,...SpecificationData,Documents:selectedTags}}
             >
               <Form.Item
                 name="PIID"
-                label="当品编号"
+                label="编号"
                 rules={[{ required: true, message: '请输入当品编号' }]}
               >
                 <Input placeholder="请输入当品编号" onChange={this.handlePIID} />
@@ -709,7 +807,7 @@ export default class ManageSales extends Component {
               }
               <Form.Item
                 name="Documents"
-                label="Documents"
+                label="附件"
                 rules={[{ required: true, message: '请选择可提供附件' }]}
               >
                 <div>
@@ -743,6 +841,29 @@ export default class ManageSales extends Component {
                 <Input placeholder="请输入单位" onChange={this.handleQuantity} />
               </Form.Item>
               <Form.Item
+                label="照片"
+                valuePropName="fileList"
+                getValueFromEvent={normFile}
+              >
+                <Upload
+                  action="http://localhost:3000/upload?type=item"
+                  listType="picture-card"
+                  fileList={fileList}
+                  onPreview={this.handlePreview}
+                  onChange={this.handleImgChange}
+                >
+                  {fileList.length >= 9 ? null : uploadButton}
+                </Upload>
+                <Modal
+                  visible={previewVisible}
+                  title={previewTitle}
+                  footer={null}
+                  onCancel={this.handleCancel}
+                >
+                  <img alt="example" style={{ width: '100%' }} src={previewImage} />
+                </Modal>
+              </Form.Item>
+              <Form.Item
                 name="canDistribute"
                 label="支持邮寄"
                 rules={[{ required: true, message: '请选择是否支持邮寄' }]}
@@ -772,7 +893,7 @@ export default class ManageSales extends Component {
                 :
                 <Form.Item
                   name="PickUpCode"
-                  label="提货码"
+                  label="提 货 码"
                 >
                   <Input onChange={this.handlePickUpCode} />
                 </Form.Item>
@@ -795,16 +916,6 @@ export default class ManageSales extends Component {
                   <Option value="0">未支付</Option>
                   <Option value="1">已支付</Option>
                 </Select>
-              </Form.Item>
-              <Form.Item>
-                <Space size='middle'>
-                  <Button>
-                    取消
-                  </Button>
-                  <Button type="primary">
-                    保存
-                  </Button>
-                </Space>
               </Form.Item>
             </Form>
           </Drawer>

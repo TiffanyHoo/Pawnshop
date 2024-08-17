@@ -1,0 +1,7 @@
+.ant-modal-body {
+  padding: 5px;
+}
+.ant-table {
+  min-height: 100px !important;
+  margin-bottom: 10px;
+}

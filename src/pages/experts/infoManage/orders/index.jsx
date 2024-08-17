@@ -1,6 +1,7 @@
 import React, { Component, useContext, useState, useEffect, useRef } from 'react'
-import { Breadcrumb, Table, Input, Button, Popconfirm, Form, Drawer, Col, Row, Select, DatePicker, Space, Badge, notification } from 'antd'
+import { Breadcrumb, Table, Input, Button, Form, Drawer, Image, Select, DatePicker, Space, Badge, notification } from 'antd'
 import axios from 'axios'
+import Qs from 'qs'
 import store from '../../../../redux/store'
 import '../../../../style/common.less'
 //import 'antd/dist/antd.css';
@@ -95,6 +96,26 @@ export default class Orders extends Component {
 
     this.columns = [
       {
+        title: '状态',
+        dataIndex: 'state',
+        key: 'state',
+        width: '10%',
+        filters: [
+          {text: '已接单',value: '1'},
+          {text: '已完成',value: '2'},
+          {text: '已拒单',value: '3'},
+          {text: '未接单',value: '0'},
+        ],
+        render: (_, record) =>
+          record.state === "1" ? (
+              <Badge color="orange" text="已接单" />
+          ) : record.state === "2" ? (
+              <Badge color="green" text="已完成" />
+          ) : record.state === "0" ? (
+              <Badge color="volcano" text="已拒单" />
+          ) : <Badge color="blue" text="未接单" />
+        },
+      {
         title: '当物编号',
         dataIndex: 'PIID',
         key: 'PIID',
@@ -111,6 +132,11 @@ export default class Orders extends Component {
         key: 'PSName'
       },
       {
+        title: '联系电话',
+        dataIndex: 'PSPhone',
+        key: 'PSPhone'
+      },
+      {
         title: '鉴定服务',
         dataIndex: 'Authenticate',
         key: 'Authenticate',
@@ -120,19 +146,6 @@ export default class Orders extends Component {
           ) : (
             <span>是</span>
           ) 
-      },
-      {
-        title: '鉴定结果',
-        dataIndex: 'AuthenRes',
-        key: 'AuthenRes',
-        render: (_, record) =>
-          record.AuthenRes === "0" ? (
-            <QuestionCircleOutlined />
-          ) : record.AuthenRes === "1" ? (
-            <CheckCircleOutlined />
-          ) : (
-            <CloseCircleOutlined />
-          )
       },
       {
         title: '估价服务',
@@ -146,40 +159,20 @@ export default class Orders extends Component {
           ) 
       },
       {
-        title: '估价结果',
-        dataIndex: 'AssessRes',
-        key: 'AssessRes'
+        title: '鉴定服务费',
+        dataIndex: 'AuthenticateFare',
+        key: 'AuthenticateFare'
       },
       {
-        title: '服务费',
-        dataIndex: 'totalFare',
-        key: 'totalFare'
-      },
-      {
-        title: '服务单状态',
-        dataIndex: 'state',
-        key: 'state',
-        width: '120px',
-        render: (_, record) =>
-          record.state === "1" ? (
-            <Badge color="volcano" text="未处理" />
-          ) : record.state === "2" ? (
-            <Badge color="green" text="已处理" />
-          ) : ''
-      },
-      {
-        title: '操作',
-        dataIndex: 'operation',
-        render: (_, record) =>
-          this.state.dataSource.length >= 1 ? (
-            <Popconfirm title="确认退单吗?" onConfirm={() => {console.log(record.key)}}>
-              <a>退单</a>
-            </Popconfirm>
-          ) : null,
+        title: '估价服务费',
+        dataIndex: 'AssessFare',
+        key: 'AssessFare'
       },
     ];
 
     this.state = {
+      ImageVisible: false,
+      images:['http://localhost:8080/filepath/item/gold1.png'],
       visible: false ,
       dataSource: [],
       count: 0,
@@ -203,7 +196,8 @@ export default class Orders extends Component {
       AssessRes: '',
       AssessFare: '',
       state: '',
-      Notes: ''
+      Notes: '',
+      title:'',Specification:'',Documents:'',Discript:''
     };
   }
 
@@ -216,7 +210,8 @@ export default class Orders extends Component {
     console.log(store.getState().ExpertID)
     await axios.get('/getExpSer',{
       params:{
-        id:store.getState().ExpertID
+        type:'getAllSer',
+        ExpertID:store.getState().ExpertID
       }
     }).then(response=>{
         if(response.data.length === 0){
@@ -242,54 +237,65 @@ export default class Orders extends Component {
     })
   }
 
-  handleID = (e) =>{
-    this.setState({
-      ComMemID: e.target.value
-    })
+  handleAccept = async (record) => {
+    var that = this;
+
+    let data = {
+      PIID: record.PIID,
+      PSID: record.PSID,
+      ExpertID:store.getState().ExpertID,
+      type: 'Accept'
+    }
+
+    axios({
+      method: 'post',
+      url: 'http://localhost:3000/modExpSer',
+      data: Qs.stringify(data)
+    }).then(response=>{
+      notification.open({
+        message: '消息',
+        description:
+          <div style={{whiteSpace: 'pre-wrap'}}>
+            已成功接单
+          </div>,
+        icon: <SmileOutlined style={{color:'orange'}}/>,
+        duration: 2
+      });
+      that.getData();
+    }).catch(error=>{
+      console.log(error);
+    });
   }
 
-  handleName = (e) =>{
-    this.setState({
-      ComMemName: e.target.value
-    })
-  }
+  handleReject = async (record) => {
+    var that= this;
 
-  handleGender = (e) =>{
-    this.setState({
-      Gender: e
-    })
-  }
+    let data = {
+      PIID: record.PIID,
+      PSID: record.PSID,
+      ExpertID:store.getState().ExpertID,
+      type: 'Reject'
+    }
 
-  handleDate = (date, dateString) =>{
-    this.setState({
-      BirthDate: dateString
-    })
+    axios({
+      method: 'post',
+      url: 'http://localhost:3000/modExpSer',
+      data: Qs.stringify(data)
+    }).then(response=>{
+      notification.open({
+        message: '消息',
+        description:
+          <div style={{whiteSpace: 'pre-wrap'}}>
+            已成功拒单
+          </div>,
+        icon: <SmileOutlined style={{color:'orange'}}/>,
+        duration: 2
+      });
+      that.getData();
+    }).catch(error=>{
+      console.log(error);
+    });
   }
-
-  handleAddress = (e) =>{
-    this.setState({
-      Address: e.target.value
-    })
-  }
-
-  handlePhone = (e) =>{
-    this.setState({
-      Phone: e.target.value
-    })
-  }
-
-  handleEmail = (e) =>{
-    this.setState({
-      Email: e.target.value
-    })
-  }
-
-  handleNotes = (e) =>{
-    this.setState({
-      Notes: e.target.value
-    })
-  }
-
 
   showDrawer = () => {
     this.setState({
@@ -334,7 +340,7 @@ export default class Orders extends Component {
   };
 
   render() {
-    const { dataSource } = this.state;
+    const { dataSource,title,Specification,Documents,Discript,images,ImageVisible } = this.state;
     const components = {
       body: {
         row: EditableRow,
@@ -359,8 +365,8 @@ export default class Orders extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
-          <Breadcrumb.Item>信息管理</Breadcrumb.Item>
+        <Breadcrumb style={{ margin: '10px 0' }}>
+          <Breadcrumb.Item>鉴定估价</Breadcrumb.Item>
           <Breadcrumb.Item>服务单管理</Breadcrumb.Item>
         </Breadcrumb>
         <div className="site-layout-background" style={{ padding: 10 }}>
@@ -371,117 +377,31 @@ export default class Orders extends Component {
             dataSource={dataSource}
             columns={columns}
             pagination={{ pageSize: 5 }}
+            onRow={record => {
+              return {
+                  onDoubleClick: event => {
+                      const { title,Specification,Documents,Discript,photopath } = record
+                      console.log(record)
+                      console.log(photopath.split(";"))
+                      this.setState({
+                        visible:true,title,Specification,Documents,Discript,
+                        images:photopath.split(";")
+                      });
+                      //console.log(TID)
+                  },
+              };
+            }}
           />
-
         </div>
 
         <Drawer
-          title="新增商务部人员"
+          title="物品详情"
           width={720}
           onClose={this.onClose}
           visible={this.state.visible}
           bodyStyle={{ paddingBottom: 80 }}
-          extra={
-            <Space>
-              <Button onClick={this.onClose}>Cancel</Button>
-              <Button onClick={this.onSubmit} type="primary">
-                Submit
-              </Button>
-            </Space>
-          }
         >
-          <Form layout="vertical" ref={this.formRef} hideRequiredMark>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="ComMemID"
-                  label="工号"
-                  rules={[{ required: true, message: '请输入工号' }]}
-                >
-                  <Input value={this.state.ComMemID} placeholder="请输入工号" onChange={this.handleID} />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="ComMemName"
-                  label="姓名"
-                  rules={[{ required: true, message: '请输入姓名' }]}
-                >
-                  <Input value={this.state.ComMemName} placeholder="请输入姓名" onChange={this.handleName} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="Gender"
-                  label="性别"
-                  rules={[{ required: true, message: '请选择性别' }]}
-                >
-                  <Select value={this.state.Gender} onChange={this.handleGender} placeholder="选择性别">
-                    <Option value="男">男</Option>
-                    <Option value="女">女</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="BirthDate"
-                  label="出生日期"
-                  rules={[{ required: true, message: '请选择出生日期' }]}
-                >
-                  <DatePicker style={{ width: '100%' }} value={this.state.BirthDate} onChange={this.handleDate} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="Address"
-                  label="详细住址"
-                  rules={[{ required: true, message: '请输入详细住址' }]}
-                >
-                  <Input.TextArea rows={3} value={this.state.Address} onChange={this.handleAddress} placeholder="请输入详细住址" />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="Phone"
-                  label="联系电话"
-                  rules={[{ required: true, message: '请输入联系电话' }]}
-                >
-                  <Input value={this.state.Phone} onChange={this.handlePhone} placeholder="请输入联系电话" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="Email"
-                  label="邮箱地址"
-                  rules={[{ required: true, message: '请输入邮箱地址' }]}
-                >
-                  <Input value={this.state.Email} onChange={this.handleEmail} placeholder="请输入邮箱地址" />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item
-                  name="Notes"
-                  label="备注"
-                  rules={[
-                    {
-                      required: true,
-                      message: '请输入备注',
-                    },
-                  ]}
-                >
-                  <Input.TextArea rows={4} value={this.state.Notes} onChange={this.handleNotes} placeholder="请输入备注" />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
+          <Input.TextArea rows={3} onChange={this.handleAddress} placeholder="请输入评估结果" />
         </Drawer>
       </div>
     )

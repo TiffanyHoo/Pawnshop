@@ -33,8 +33,66 @@
 .ant-input-number-input {
   padding: 0 !important;
 }
+.ant-modal-body {
+  padding: 0 20px;
+}
+.ant-card-head-title {
+  padding: 8px 0 !important;
+}
+.ant-card-extra {
+  padding: 8px 0 !important;
+}
+.ant-layout-footer {
+  padding: 12px 0 !important;
+}
 input[disabled] {
   background: #fff;
   opacity: 1;
   color: black;
+}
+p {
+  margin-bottom: 0.1em !important;
+}
+.ant-drawer-header {
+  padding: 5px 20px !important;
+}
+.ant-drawer-body {
+  padding: 10px !important;
+}
+.ant-form-item {
+  margin-bottom: 8px !important;
+}
+.myRow {
+  height: 45px;
+}
+.detailRow {
+  height: 30px;
+}
+.events {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.events .ant-badge-status {
+  width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.notes-month {
+  font-size: 28px;
+  text-align: center;
+}
+.notes-month section {
+  font-size: 28px;
+}
+.ant-picker-calendar-header {
+  padding: 0 !important;
+}
+.ant-picker-calendar-full .ant-picker-panel .ant-picker-calendar-date {
+  height: 94px !important;
+}
+.ant-picker-calendar-full .ant-picker-panel .ant-picker-calendar-date-content {
+  height: 60px !important;
 }

@@ -98,6 +98,23 @@ export default class registrationAudit extends Component {
 
     this.columns = [
       {
+        title: '操作',
+        dataIndex: 'operation',
+        width: '120px',
+        render: (_, record) =>
+          this.state.dataSource.length >= 1 ? (
+            <div>
+              <Popconfirm title="确认通过审核?" onConfirm={() => this.handlePass(record)}>
+                <a>通过</a>
+              </Popconfirm>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <Popconfirm title="确认不通过审核?" onConfirm={() => this.handleNotPass(record)}>
+                <a>不通过</a>
+              </Popconfirm>
+            </div>     
+          ) : null,
+      },
+      {
         title: '当行编号',
         dataIndex: 'PSID',
         key: 'PSID',
@@ -143,23 +160,6 @@ export default class registrationAudit extends Component {
         dataIndex: 'PSstaffName',
         key: 'PSstaffName',
         width: '120px'
-      },
-      {
-        title: '操作',
-        dataIndex: 'operation',
-        width: '120px',
-        render: (_, record) =>
-          this.state.dataSource.length >= 1 ? (
-            <div>
-              <Popconfirm title="确认通过审核?" onConfirm={() => this.handlePass(record)}>
-                <a>通过</a>
-              </Popconfirm>
-              &nbsp;&nbsp;&nbsp;&nbsp;
-              <Popconfirm title="确认不通过审核?" onConfirm={() => this.handleNotPass(record)}>
-                <a>不通过</a>
-              </Popconfirm>
-            </div>     
-          ) : null,
       },
     ];
 
@@ -343,18 +343,19 @@ export default class registrationAudit extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>资质管理</Breadcrumb.Item>
           <Breadcrumb.Item>注册审核</Breadcrumb.Item>
         </Breadcrumb>
         <div className="site-layout-background" style={{ padding: 10 }}>
           <Table
+            size='small'
             components={components}
             rowClassName={() => 'editable-row'}
             bordered
             dataSource={dataSource}
             columns={columns}
-            pagination={{ pageSize: 5 }}
+            pagination={{ pageSize: 10 }}
             onRow={record => {
               return {
                 onDoubleClick: event => {

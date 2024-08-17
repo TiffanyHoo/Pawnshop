@@ -340,7 +340,7 @@ export default class RenewPawn extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>典当业务</Breadcrumb.Item>
           <Breadcrumb.Item>续当申请</Breadcrumb.Item>
         </Breadcrumb>

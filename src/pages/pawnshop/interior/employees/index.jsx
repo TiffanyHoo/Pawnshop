@@ -104,28 +104,33 @@ export default class Employees extends Component {
         title: '工号',
         dataIndex: 'PSstaffID',
         key: 'PSstaffID',
-        editable: false
+        editable: false,
+        width: '90px'
       },
       {
         title: '姓名',
         dataIndex: 'PSstaffName',
-        key: 'PSstaffName'
+        key: 'PSstaffName',
+        width: '80px'
       },
       {
         title: '性别',
         dataIndex: 'Gender',
         key: 'Gender',
-        width: '10%'
+        width: '10%',
+        width: '70px'
       },
       {
         title: '证件号',
         dataIndex: 'Identification',
-        key: 'Identification'
+        key: 'Identification',
+        width: '166px'
       },
       {
         title: '出生日期',
         dataIndex: 'BirthDate',
-        key: 'BirthDate'
+        key: 'BirthDate',
+        width: '90px'
       },
       {
         title: '地址',
@@ -165,6 +170,7 @@ export default class Employees extends Component {
               </Popconfirm>
             </div>
           ) : null,
+        width: '100px'
       },
     ];
 
@@ -491,7 +497,7 @@ export default class Employees extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>信息管理</Breadcrumb.Item>
           <Breadcrumb.Item>员工信息管理</Breadcrumb.Item>
         </Breadcrumb>
@@ -511,6 +517,7 @@ export default class Employees extends Component {
           </Space>
           }
           <Table
+            size='small'
             components={components}
             rowClassName={() => 'editable-row'}
             bordered

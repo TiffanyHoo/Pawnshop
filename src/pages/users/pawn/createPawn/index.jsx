@@ -340,7 +340,7 @@ export default class CreatePawn extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>典当业务</Breadcrumb.Item>
           <Breadcrumb.Item>建当估价</Breadcrumb.Item>
         </Breadcrumb>

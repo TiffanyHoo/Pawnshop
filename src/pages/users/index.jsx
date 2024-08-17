@@ -100,7 +100,7 @@ export default class Users extends Component {
                 </Sider>
                 <Layout className="site-layout">
                     <Content style={{ margin: '10px 16px' }}>
-                        <div className="site-layout-background" style={{ padding: 10, height: '80vh' }}>
+                        <div className="site-layout-background" style={{ padding: 10, height: '83vh' }}>
                         <Routes>
                             <Route path="pawn/createpawn" element={<CreatePawn/>}/>   
                             <Route path="pawn/renewpawn" element={<RenewPawn/>}/>    

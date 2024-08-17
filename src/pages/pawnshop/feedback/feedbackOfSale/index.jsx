@@ -81,9 +81,7 @@ export default class FeedbackOfSale extends Component {
       count: dataSource.length
     })
 
-    dataSource = dataSource.map((obj,index) => {
-      console.log(obj)
-      
+    dataSource = dataSource.map((obj,index) => {      
       const child = [{
         ...obj,
         key: index,
@@ -162,6 +160,8 @@ export default class FeedbackOfSale extends Component {
         submitting: false,
         value: ''
       });
+      this.getData();
+
     }, 1000);
   };
 
@@ -179,7 +179,7 @@ export default class FeedbackOfSale extends Component {
       <div>
         <Breadcrumb style={{ margin: '10px 16px' }}>
           <Breadcrumb.Item>反馈处理</Breadcrumb.Item>
-          <Breadcrumb.Item>销售反馈处理</Breadcrumb.Item>
+          <Breadcrumb.Item>典当反馈处理</Breadcrumb.Item>
         </Breadcrumb>
         <div className="site-layout-background" style={{ padding: '16px' , height: '70vh', overflow: 'auto'}}>
           <List
@@ -240,7 +240,7 @@ export default class FeedbackOfSale extends Component {
           centered
           visible={visible}
           onOk={this.handleSubmit}
-          onCancel={() => {this.setState({visible:false})}}
+          onCancel={() => {this.setState({visible:false,FBID:''})}}
           width={480}
           height={300}
           bodyStyle={{paddingTop:0,height:200}}

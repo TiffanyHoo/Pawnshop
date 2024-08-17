@@ -99,6 +99,25 @@ export default class ExpertInfo extends Component {
 
     this.columns = [
       {
+        title: '操作',
+        dataIndex: 'operation',
+        width: '160px',
+        render: (_, record) =>
+          this.state.dataSource.length >= 1 ? (
+            <div>
+              服务权限 : <Switch checked={record.AuditState==='1'?true:false} onChange={(e)=>this.handleAuditState(e,record.ExpertID)}/>
+              <br />
+              <Popconfirm title="确认初始化密码吗?" onConfirm={() => this.initialPwd(record)}>
+                <a>初始化密码</a>
+              </Popconfirm>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <Popconfirm title="确认删除专家吗?" onConfirm={() => this.delMember(record)}>
+                <a>删除</a>
+              </Popconfirm>
+            </div>
+          ) : null
+      },
+      {
         title: '专家编号',
         dataIndex: 'ExpertID',
         key: 'ExpertID',
@@ -146,26 +165,7 @@ export default class ExpertInfo extends Component {
         title: '联系电话',
         dataIndex: 'Phone',
         key: 'Phone'
-      },
-      {
-        title: '操作',
-        dataIndex: 'operation',
-        width: '160px',
-        render: (_, record) =>
-          this.state.dataSource.length >= 1 ? (
-            <div>
-              服务权限 : <Switch checked={record.AuditState==='1'?true:false} onChange={(e)=>this.handleAuditState(e,record.ExpertID)}/>
-              <br />
-              <Popconfirm title="确认初始化密码吗?" onConfirm={() => this.initialPwd(record)}>
-                <a>初始化密码</a>
-              </Popconfirm>
-              &nbsp;&nbsp;&nbsp;&nbsp;
-              <Popconfirm title="确认删除专家吗?" onConfirm={() => this.delMember(record)}>
-                <a>删除</a>
-              </Popconfirm>
-            </div>
-          ) : null
-      },
+      }
     ];
 
     this.state = {
@@ -516,7 +516,7 @@ export default class ExpertInfo extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>信息管理</Breadcrumb.Item>
           <Breadcrumb.Item>专家信息管理</Breadcrumb.Item>
         </Breadcrumb>

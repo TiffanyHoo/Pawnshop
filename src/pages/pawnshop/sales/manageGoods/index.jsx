@@ -1,6 +1,7 @@
 import React, { Component, useContext, useState, useEffect, useRef } from 'react'
-import { Breadcrumb, Table, Input, Button, Switch, Form, Drawer, Col, Row, Select, DatePicker, Space, Tooltip, notification, Tag } from 'antd'
+import { Breadcrumb, Table, Input, Button, Switch, Form, Drawer, Select, Space, Tooltip, notification, Tag, Upload, Modal, message } from 'antd'
 import axios from 'axios'
+import Qs from 'qs'
 import store from '../../../../redux/store'
 import '../../../../style/common.less'
 //import 'antd/dist/antd.css';
@@ -92,6 +93,24 @@ const EditableCell = ({
   return <td {...restProps}>{childNode}</td>;
 };
 
+const normFile = (e) => {
+  console.log('Upload event:', e);
+
+  if (Array.isArray(e)) {
+    return e;
+  }
+
+  return e && e.fileList;
+};
+
+function getBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
 
 export default class ManageGoods extends Component {
   constructor(props) {
@@ -104,79 +123,64 @@ export default class ManageGoods extends Component {
         dataIndex: 'PIID',
         key: 'PIID',
         editable: false,
-        width: '10%'
+        width: '150px',
+        fixed: 'left'
       },
       {
-        title: '类别',
+        title: '当物名称',
+        dataIndex: 'itemName',
+        key: 'itemName',
+        width: '120px',
+        fixed: 'left'
+      },
+      {
+        title: '当物类别',
         dataIndex: 'title',
         key: 'title',
-        width: '10%'
-      },
-      {
-        title: '规格详情',
-        dataIndex: 'Specification',
-        key: 'Specification',
-        ellipsis: {
-          showTitle: false,
-        },
-        render: Documents => (
-          <Tooltip placement="topLeft" title={Documents}>
-            {Documents}
-          </Tooltip>
-        )
-      },
-      {
-        title: '附件',
-        dataIndex: 'Documents',
-        key: 'Documents',
-        ellipsis: {
-          showTitle: false,
-        },
-        render: Documents => (
-          <Tooltip placement="topLeft" title={Documents}>
-            {Documents}
-          </Tooltip>
-        )
+        width: '120px',
+        fixed: 'left'
       },
       {
         title: '当价',
         dataIndex: 'UnitPrice',
         key: 'UnitPrice',
-        width: '10%'
+        width: '120px'
       },
       {
         title: '数量',
         dataIndex: 'Quantity',
         key: 'Quantity',
-        width: '10%'
+        width: '100px'
       },
       {
         title: '售价',
         dataIndex: 'PriceOnSale',
         key: 'PriceOnSale',
-        width: '10%'
+        width: '120px'
       },
       {
         title: '上架操作',
         dataIndex: 'operation',
-        width: '10%',
+        width: '100px',
+        fixed:'right',
         render: (_, record) =>
           record.state === '4' ? (
             <p>已售出</p>
           ):
           record.state === '3' ? (
-            <Switch defaultChecked onChange={(e)=>{console.log(e)}} />
+            <Switch defaultChecked onChange={(e)=>{this.changeState(e,record.PIID)}} />
           ) : record.PriceOnSale === undefined || record.PriceOnSale.trim() === '' ? (
             <Tooltip placement="top" title="请先设置售价">
               <Switch disabled />
             </Tooltip>
           ) : (
-            <Switch onChange={(e)=>{console.log(record.PriceOnSale)}} />
+            <Switch onChange={(e)=>{this.changeState(e,record.PIID)}} />
           ),
       },
     ];
 
     this.state = {
+      previewVisible: false,
       visible: false ,
       SpeDetailArr: [],
       DocDetailArr: [],
@@ -199,9 +203,13 @@ export default class ManageGoods extends Component {
       PriceOnSale: '',
       canDistribute: '',
       state: '',
-      Discript: ''
+      Discript: '',
+      fileList:[],
+      previewTitle:''
     };
   }
+
+  formRef = React.createRef();
 
   componentDidMount(){
     this.getData()
@@ -235,6 +243,28 @@ export default class ManageGoods extends Component {
       dataSource,
       count: dataSource.length
     })
+  }
+
+  changeState = (e,PIID) => {
+    let data = {
+      type:'changeState',
+      state:e?3:2,
+      PIID
+    }
+
+    axios({
+      method: 'post',
+      url: 'http://localhost:3000/modGoods',
+      data: Qs.stringify(data)
+    }).then(response=>{
+      notification.open({
+        message: '提示',
+        description:
+          <div style={{whiteSpace: 'pre-wrap'}}>已成功{e?'上架':'下架'}</div>,
+        icon: <SmileOutlined style={{color:'orange'}}/>,
+        duration: 2
+      });
+    });
   }
 
   handleDelete = (key) => {
@@ -271,27 +301,14 @@ export default class ManageGoods extends Component {
     })
   }
 
-  handleAddress = (e) =>{
-    this.setState({
-      Address: e.target.value
-    })
-  }
-
-  handlePhone = (e) =>{
-    this.setState({
-      Phone: e.target.value
-    })
-  }
-
   handleNotes = (e) =>{
     this.setState({
       Notes: e.target.value
     })
   }
 
-
   showDrawer = (record) => {
-    const {SpeDetail,DocDetail,Specification,Documents} = record
+    const {SpeDetail,DocDetail,Specification,Documents,photopath} = record
     let selectedTags = [];
 
     const SpeDetailArr = SpeDetail.split(";")
@@ -305,17 +322,34 @@ export default class ManageGoods extends Component {
         }
       });
     })
-    console.log(SpecificationData)
+    // console.log(SpecificationData)
     const DocDetailArr = DocDetail.split(";")
     const DocumentsArr = Documents.split(";")
     selectedTags = DocumentsArr
-    console.log(selectedTags)
+    // console.log(selectedTags)
+
+    let fileList=photopath.split(";")
+    fileList=fileList.map((obj,index) => {
+      return {
+          url: obj,
+          uid: index,
+          key: index
+      };
+    });
     this.setState({
-      ...record,SpeDetailArr,DocDetailArr,SpecificationArr,DocumentsArr,SpecificationData,selectedTags
+      ...record,SpeDetailArr,DocDetailArr,SpecificationArr,DocumentsArr,SpecificationData,selectedTags,
+      fileList
     })
+    console.log(photopath.split(";"))
     this.setState({
       visible: true
     });
+
+    setTimeout(() => {
+      this.formRef.current.setFieldsValue({
+        ...record,canDistribute:record.canDistribute==='0'?'否':'是'
+      })
+    }, 200);
   };
 
   handleTagsChange(tag, checked) {
@@ -345,39 +379,70 @@ export default class ManageGoods extends Component {
   };
 
   onSubmit = async () => {
-    console.log(this.state)
+    const {PIID,PriceOnSale} = this.state
 
-    await axios.get('/addComMem',{
-      params:{
-        ComMemID: this.state.ComMemID,
-        ComMemName: this.state.ComMemName,
-        Gender: this.state.Gender,
-        BirthDate: this.state.BirthDate,
-        Address: this.state.Address,
-        Phone: this.state.Phone,
-        Email: this.state.Email,
-        Notes: this.state.Notes
-      }
+    let data = {
+      type: 'onsale',
+      PIID,PriceOnSale
+    }
+
+    await axios({
+      method: 'post',
+      url: 'http://localhost:3000/modUserItem',
+      data: Qs.stringify(data)
     }).then(response=>{
-      console.log(response);
-    }).catch(error=>{
-        console.log(error);
+      notification.open({
+        message: '提示',
+        description:
+          <div style={{whiteSpace: 'pre-wrap'}}>已成功修改售价</div>,
+        icon: <SmileOutlined style={{color:'orange'}}/>,
+        duration: 2
+      });
     });
 
     this.getData()
-
-    notification.open({
-      message: 'Notification',
-      description:
-        <div style={{whiteSpace: 'pre-wrap'}}>已成功添加人员<br/>初始密码为123456</div>,
-      icon: <SmileOutlined style={{color:'orange'}}/>,
-      duration: 2
-    });
     this.onClose();
   };
 
+  handleCancel = () => this.setState({ previewVisible: false });
+
+  handlePreview = async file => {
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj);
+    }
+
+    this.setState({
+      previewImage: file.url || file.preview,
+      previewVisible: true,
+      previewTitle: file.name || file.url.substring(file.url.lastIndexOf('/') + 1),
+    });
+  };
+
+  handleImgChange = ({ file, fileList }) => {
+    if (file.status === 'done') { 
+      const newList = fileList.map((v)=>{
+        if(v.uid===file.uid){
+          v.url='http://localhost:8080/filepath/item/'+file.response.targetfile
+        }
+        return v
+      })
+      this.setState({
+        photopath: newList[0].url
+      })
+      message.success('上传图片成功')
+    } else if (file.status === 'removed') { 
+        // const result = await reqDeleteImg(file.name)
+        message.success('删除图片成功！')
+    }else if (file.status === 'error') { 
+        message.error('图片编辑失败！')
+    }else{
+
+    }
+    this.setState({ fileList })
+  }
+
   render() {
-    const { dataSource,SpeDetailArr,SpecificationArr,DocDetailArr,SpecificationData,selectedTags,PIID,title,photopath,Unitprice,Quantity,PriceOnSale,canDistribute,state,Discript } = this.state;
+    const { previewVisible,previewImage,previewTitle,fileList,dataSource,SpeDetailArr,SpecificationArr,DocDetailArr,SpecificationData,selectedTags,PIID,title,photopath,Unitprice,Quantity,PriceOnSale,canDistribute,state,Discript } = this.state;
     const components = {
       body: {
         row: EditableRow,
@@ -401,20 +466,28 @@ export default class ManageGoods extends Component {
       };
     });
 
+    const uploadButton = (
+      <div>
+        <PlusOutlined />
+        <div style={{ marginTop: 8 }}>Upload</div>
+      </div>
+    );
+
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
-          <Breadcrumb.Item>销售管理</Breadcrumb.Item>
+        <Breadcrumb style={{ margin: '10px 0' }}>
+          <Breadcrumb.Item>当物商城</Breadcrumb.Item>
           <Breadcrumb.Item>绝当品管理</Breadcrumb.Item>
         </Breadcrumb>
         <div className="site-layout-background" style={{ padding: 10 }}>
           <Table
+            size="small"
             components={components}
             rowClassName={() => 'editable-row'}
             bordered
             dataSource={dataSource}
             columns={columns}
-            pagination={{ pageSize: 5 }}
+            pagination={{ pageSize: 10 }}
             expandable={{
               expandedRowRender: record => <p style={{ margin: 0 }}>规格详情: {record.Specification}<br/>附件: {record.Documents}</p>,
               rowExpandable: record => record.Specification !== '' || record.Documents !== '',
@@ -422,7 +495,7 @@ export default class ManageGoods extends Component {
             onRow={record => {
               return {
                 onDoubleClick: event => {
-                  this.showDrawer(record)              
+                  this.showDrawer(record)       
                 },
               };
             }}
@@ -430,26 +503,26 @@ export default class ManageGoods extends Component {
         </div>
 
         <Drawer
-          title="编辑信息"
+          title="编辑当品信息"
           width={320}
           onClose={this.onClose}
           visible={this.state.visible}
           bodyStyle={{ paddingBottom: 80 }}
           extra={
             <Space>
-              <Button onClick={this.onClose}>Cancel</Button>
+              {/* <Button onClick={this.onClose}>取消</Button> */}
               <Button onClick={this.onSubmit} type="primary">
-                Submit
+                确定
               </Button>
             </Space>
           }
         >
-          <Form layout="vertical" ref={this.formRef} hideRequiredMark
+          <Form layout="horizontal" ref={this.formRef} hideRequiredMark
           initialValues={{PIID,title,Discript,Quantity,Unitprice,canDistribute,...SpecificationData,Documents:selectedTags}}
           >
             <Form.Item
               name="PIID"
-              label="当品编号"
+              label="编号"
               rules={[{ required: true, message: '请输入当品编号' }]}
             >
               <Input value={PIID} placeholder="请输入当品编号" onChange={this.handleID} />
@@ -467,14 +540,14 @@ export default class ManageGoods extends Component {
               <Input value={Quantity} onChange={this.handleQuantity} />
             </Form.Item>
             <Form.Item
-              name="Unitprice"
+              name="PriceOnSale"
               label="售价"
             >
-              <Input value={Unitprice} onChange={this.handleUnitprice} />
+              <Input value={PriceOnSale} onChange={(e)=>this.setState({PriceOnSale:e.target.value})} />
             </Form.Item>
             <Form.Item
               name="canDistribute"
-              label="支持配送"
+              label="配送"
             >
               <Input value={canDistribute} onChange={this.handleCanDistribute} />
             </Form.Item>
@@ -501,7 +574,7 @@ export default class ManageGoods extends Component {
             }
             <Form.Item
               name="Documents"
-              label="Documents"
+              label="附件"
               rules={[{ required: true, message: '请选择可提供附件' }]}
             >
               <div>
@@ -519,6 +592,29 @@ export default class ManageGoods extends Component {
               })        
               }
               </div>            
+            </Form.Item>
+            <Form.Item
+                label="照片"
+                valuePropName="fileList"
+                getValueFromEvent={normFile}
+              >
+                <Upload
+                  action="http://localhost:3000/upload?type=item"
+                  listType="picture-card"
+                  fileList={fileList}
+                  onPreview={this.handlePreview}
+                  onChange={this.handleImgChange}
+                >
+                  {fileList.length >= 9 ? null : uploadButton}
+                </Upload>
+                <Modal
+                  visible={previewVisible}
+                  title={previewTitle}
+                  footer={null}
+                  onCancel={this.handleCancel}
+                >
+                  <img alt="example" style={{ width: '100%' }} src={previewImage} />
+                </Modal>
             </Form.Item>
             <Form.Item
               name="Discript"

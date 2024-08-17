@@ -116,34 +116,51 @@ export default class UserInfo extends Component {
 
     this.columns = [
       {
+        title: '操作',
+        dataIndex: 'operation',
+        width: '150px',
+        render: (_, record) =>
+          this.state.dataSource.length >= 1 ? (
+            <div>
+              <Popconfirm title="确认初始化密码吗?" onConfirm={() => this.initialPwd(record)}>
+                <a>初始化密码</a>
+              </Popconfirm>
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <Popconfirm title="确认删除用户吗?" onConfirm={() => this.delMember(record)}>
+                <a>删除</a>
+              </Popconfirm>
+            </div>
+          ) : null,
+      },
+      {
         title: '证件号',
         dataIndex: 'UserID',
         key: 'UserID',
-        editable: false
+        editable: false,
+        width: '170px',
       },
       {
         title: '姓名',
         dataIndex: 'UserName',
         key: 'UserName',
-        width: '10%'
+        width: '100px'
       },
       {
         title: '性别',
         dataIndex: 'GenderChar',
         key: 'GenderChar',
-        width: '8%'
+        width: '80px'
       },
       {
         title: '出生日期',
         dataIndex: 'BirthDate',
         key: 'BirthDate',
-        width: '10%'
+        width: '110px'
       },
       {
         title: '地址',
         dataIndex: 'Address',
         key: 'Address',
-        width: '12%',
         ellipsis: {
           showTitle: false,
         },
@@ -172,24 +189,7 @@ export default class UserInfo extends Component {
             {item}
           </Tooltip>
         ),
-      },
-      {
-        title: '操作',
-        dataIndex: 'operation',
-        width: '160px',
-        render: (_, record) =>
-          this.state.dataSource.length >= 1 ? (
-            <div>
-              <Popconfirm title="确认初始化密码吗?" onConfirm={() => this.initialPwd(record)}>
-                <a>初始化密码</a>
-              </Popconfirm>
-              &nbsp;&nbsp;&nbsp;&nbsp;
-              <Popconfirm title="确认删除用户吗?" onConfirm={() => this.delMember(record)}>
-                <a>删除</a>
-              </Popconfirm>
-            </div>
-          ) : null,
-      },
+      }
     ];
 
     this.state = {
@@ -637,7 +637,7 @@ export default class UserInfo extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>信息管理</Breadcrumb.Item>
           <Breadcrumb.Item>用户信息管理</Breadcrumb.Item>
         </Breadcrumb>
@@ -646,12 +646,13 @@ export default class UserInfo extends Component {
             新增用户
           </Button>
           <Table
+            size='small'
             components={components}
             rowClassName={() => 'editable-row'}
             bordered
             dataSource={dataSource}
             columns={columns}
-            pagination={{ pageSize: 5 }}
+            pagination={{ pageSize: 10 }}
             onRow={record => {
               return {
                 onDoubleClick: event => {

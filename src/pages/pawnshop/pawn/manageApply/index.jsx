@@ -11,7 +11,6 @@ import moment from 'moment';
 
 const { Option } = Select;
 const { CheckableTag } = Tag;
-const { RangePicker } = DatePicker;
 
 const EditableContext = React.createContext(null);
 
@@ -107,7 +106,7 @@ export default class ManageApply extends Component {
                 title: '操作',
                 dataIndex: 'operation',
                 fixed: 'left',
-                width: '100px',
+                width: '80px',
                 render: (_, record) =>
                 this.state.dataSource.length >= 1 ? (
                     <div>
@@ -126,14 +125,16 @@ export default class ManageApply extends Component {
                 dataIndex: 'ApplyID',
                 key: 'ApplyID',
                 fixed: 'left',
-                width: '90px'
+                width: '110px',
+                sorter: (a, b) => a.ApplyID - b.ApplyID,
+                ...this.getColumnSearchProps('ApplyID','申请单编号'),
             },         
             {
                 title: '申请类型',
                 dataIndex: 'ApplyType',
                 key: 'ApplyType',
                 fixed: 'left',
-                width: '105px',
+                width: '100px',
                 filters: [
                     {text: '建当',value: '1'},
                     {text: '续当',value: '2'},
@@ -154,7 +155,7 @@ export default class ManageApply extends Component {
                     ) : ''
             }, 
             {
-                title: '物品',
+                title: '当品名称',
                 dataIndex: 'things',
                 key: 'things',
                 width: '200px',
@@ -166,9 +167,10 @@ export default class ManageApply extends Component {
                     {e}
                 </Tooltip>
                 ),
+                ...this.getColumnSearchProps('things','当品名称'),
             },
             {  
-                title: '物品数量',
+                title: '当品数量',
                 dataIndex: 'Quantity',
                 key: 'Quantity',
                 width: '90px',
@@ -193,11 +195,11 @@ export default class ManageApply extends Component {
                 width: '110px'
             }, 
             {
-                title: '用户姓名',
+                title: '当户姓名',
                 dataIndex: 'UserName',
                 key: 'UserName',
-                width: '100px',
-                ...this.getColumnSearchProps('UserName','用户姓名'),
+                width: '90px',
+                ...this.getColumnSearchProps('UserName','当户姓名'),
                 render: (_, record) => (
                 <Tooltip placement="topLeft" title={record.Gender==='1'?'女':'男'}>
                     {record.UserName}
@@ -205,11 +207,11 @@ export default class ManageApply extends Component {
                 ),
             },
             {
-                title: '用户证件号',
+                title: '当户证件号',
                 dataIndex: 'UserID',
                 key: 'UserID',
                 width: '140px',
-                ...this.getColumnSearchProps('UserID','用户证件号'),
+                ...this.getColumnSearchProps('UserID','当户证件号'),
                 render: (UserID) => (
                     <span>{UserID.substring(0,UserID.length-4)+"****"}</span>
                 )
@@ -258,7 +260,7 @@ export default class ManageApply extends Component {
                 title: '申请时间',
                 dataIndex: 'ApplyDate',
                 key: 'ApplyDate',
-                width: '100px'
+                width: '90px'
             }, 
             {
                 title: '处理状态',
@@ -329,6 +331,11 @@ export default class ManageApply extends Component {
             pagination: {
                 current: 1,
                 pageSize: 10,
+                pageSizeOptions:[5,10,15,20],
+                showSizeChanger:true,
+                onChange: (page, pageSize) => {
+
+                }
             },
             loading: false
 
@@ -347,7 +354,7 @@ export default class ManageApply extends Component {
             value={selectedKeys[0]}
             onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
             onPressEnter={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
-            style={{ marginBottom: 8, display: 'block' }}
+            style={{ marginBottom: 8, display: 'block', width: 168 }}
             />
             <Space>
             <Button
@@ -355,14 +362,14 @@ export default class ManageApply extends Component {
                 onClick={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
                 icon={<SearchOutlined />}
                 size="small"
-                style={{ width: 90 }}
+                style={{ width: 80 }}
             >
                 搜索
             </Button>
-            <Button onClick={() => this.handleReset(clearFilters)} size="small" style={{ width: 90 }}>
+            <Button onClick={() => this.handleReset(clearFilters)} size="small" style={{ width: 80 }}>
                 重置
             </Button>
-            <Button
+            {/* <Button
                 type="link"
                 size="small"
                 onClick={() => {
@@ -374,7 +381,7 @@ export default class ManageApply extends Component {
                 }}
             >
                 过滤
-            </Button>
+            </Button> */}
             </Space>
         </div>
         ),
@@ -446,10 +453,6 @@ export default class ManageApply extends Component {
         ApplyType = ApplyType==undefined||ApplyType==null?'1,2,3,4':ApplyType.join(',')
         state = state==undefined||state==null?'0,1,2,3':state.join(',')
         //state = state?state:'0,1,2,3'
-        console.log(ApplyType==undefined)
-        console.log(ApplyType==null)
-        console.log(typeof ApplyType)
-        console.log(ApplyType)
 
         this.setState({ loading: true });
         fetch(`http://localhost:3000/getApply?${Qs.stringify(getRandomuserParams(params,ApplyType,state))}`)
@@ -642,7 +645,7 @@ export default class ManageApply extends Component {
             notification.open({
                 message: '消息',
                 description:
-                    <div style={{whiteSpace: 'pre-wrap'}}>用户已取消申请，无法报价！</div>,
+                    <div style={{whiteSpace: 'pre-wrap'}}>当户已取消申请，无法报价！</div>,
                 icon: <WarningOutlined style={{color:'orange'}}/>,
                 duration: 2
             });
@@ -738,6 +741,7 @@ export default class ManageApply extends Component {
                 pagination={pagination}
                 loading={loading}
                 onChange={this.handleTableChange}
+                hideOnSinglePage={false}
                 size="small"
                 scroll={{ x: 1800 }}
                 minHeight="600"
@@ -773,26 +777,26 @@ export default class ManageApply extends Component {
             </div>
             <Drawer
             title="申请单详情"
-            width={820}
+            width={860}
             style={{zIndex:10}}
             onClose={this.onClose}
             visible={this.state.visible1}
             bodyStyle={{ paddingBottom: 80 }}
             extra={
                 <Space>
-                    <Button onClick={this.onClose}>返回</Button>
+                    {/* <Button onClick={this.onClose}>返回</Button> */}
                     <Button type='primary' onClick={this.showModal}>报价</Button>
                 </Space>
             }
             >
-            <Form layout="vertical" ref={this.formRef} hideRequiredMark
+            <Form layout="horizontal" ref={this.formRef} hideRequiredMark
             initialValues={{UserID,UserName,Gender,Address,Phone,Email,Wechat,ANotes}}
             >
-                <Row gutter={16}>
+                <Row gutter={16} className="myRow">
                     <Col span={6}>
                         <Form.Item
                         name="ApplyID"
-                        label="申请单编号"
+                        label="申请单编号："
                         >
                             <Input readOnly />
                         </Form.Item>
@@ -800,7 +804,7 @@ export default class ManageApply extends Component {
                     <Col span={6}>
                         <Form.Item
                         name="ApplyType"
-                        label="申请类型"
+                        label="申请类型："
                         >
                             <Input readOnly />
                         </Form.Item>
@@ -808,7 +812,7 @@ export default class ManageApply extends Component {
                     <Col span={6}>
                         <Form.Item
                         name="ApplyDate"
-                        label="申请时间"
+                        label="申请时间："
                         >
                             <Input readOnly />
                         </Form.Item>
@@ -816,19 +820,19 @@ export default class ManageApply extends Component {
                     <Col span={6}>
                         <Form.Item
                         name="Plandate"
-                        label="计划到行时间"
+                        label="计划到行时间："
                         >
                             <Input readOnly />
                         </Form.Item>
                     </Col>
                 </Row>
                 <hr/>
-                <p style={{margin:0,minHeight:'30px'}}>用户信息</p>
-                <Row gutter={16}>
+                <p style={{margin:0,minHeight:'30px'}}>当户信息</p>
+                <Row gutter={16} className="myRow">
                     <Col span={8}>
                         <Form.Item
                         name="UserID"
-                        label="用户证件号"
+                        label="当户证件号："
                         >
                         <Input readOnly/>
                         </Form.Item>
@@ -836,7 +840,7 @@ export default class ManageApply extends Component {
                     <Col span={8}>
                         <Form.Item
                         name="UserName"
-                        label="用户姓名"
+                        label="当户姓名："
                         >
                         <Input readOnly/>
                         </Form.Item>
@@ -844,17 +848,17 @@ export default class ManageApply extends Component {
                     <Col span={8}>
                         <Form.Item
                         name="Gender"
-                        label="性别"
+                        label="性&nbsp;&nbsp;&nbsp;&nbsp;别："
                         >
                         <Input readOnly />
                         </Form.Item>
                     </Col>
                 </Row>
-                <Row gutter={16}>
+                <Row gutter={16} className="myRow">
                     <Col span={8}>
                         <Form.Item
                         name="Phone"
-                        label="联系电话"
+                        label="联 系 电 话："
                         >
                         <Input readOnly />
                         </Form.Item>
@@ -862,7 +866,7 @@ export default class ManageApply extends Component {
                     <Col span={8}>
                         <Form.Item
                         name="Email"
-                        label="邮箱地址"
+                        label="邮箱地址："
                         >
                         <Input readOnly />
                         </Form.Item>
@@ -870,19 +874,19 @@ export default class ManageApply extends Component {
                     <Col span={8}>
                         <Form.Item
                         name="Wechat"
-                        label="微信号"
+                        label="微信号："
                         >
                         <Input readOnly />
                         </Form.Item>
                     </Col>
                 </Row>
-                <Row gutter={16}>
+                <Row gutter={16} className="myRow">
                 <Col span={24}>
                     <Form.Item
                     name="Address"
-                    label="详细住址"
+                    label="详 细 住 址："
                     >
-                    <Input.TextArea rows={2} readOnly/>
+                    <Input readOnly/>
                     </Form.Item>
                 </Col>
                 </Row>
@@ -891,14 +895,14 @@ export default class ManageApply extends Component {
                 <Col span={24}>
                     <Form.Item
                     name="detail"
-                    label="物品明细"
+                    label="当品明细"
                     >
-                        <p style={{margin:0,minHeight:0}}>物品份数 : {this.state.dataSource1.length}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;期望到手价 : {this.state.ExpectAmount}</p>
+                        <p style={{margin:0,minHeight:0}}>当品份数 : {this.state.dataSource1.length}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;期望到手价 : {this.state.ExpectAmount}</p>
                     </Form.Item>
                 </Col>
                 </Row>  
                 {dataSource1.map((obj,index) => {
-                const {UIID,title,BuyPrice,Quantity,Specification,DocDetail,Discript,images} = obj
+                const {UIID,itemName,title,BuyPrice,Quantity,Specification,DocDetail,Discript,images} = obj
                 return (
                     <Row gutter={16} key={index}>
                     <Col span={24}>
@@ -908,7 +912,7 @@ export default class ManageApply extends Component {
                             <Space size={20} align='start' style={{display:'flex',marginRight:'50px'}}>
                                 <Image
                                 preview={{visible:false}}
-                                width={200}
+                                width={100}
                                 src={images[0]}
                                 onClick={() => this.setState({ImageVisible:true})}
                                 />
@@ -922,11 +926,10 @@ export default class ManageApply extends Component {
                                 </Image.PreviewGroup>
                                 </div>
                                 <Space size={5} direction="vertical" style={{marginTop:'-100px'}}>
-                                    <p>物品名称 : {title}</p>
-                                    <p>购入价 : {BuyPrice}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数量 : {Quantity}</p>
-                                    <p>物品详情 : {Specification}</p>
+                                    <p>当品名称 : {itemName}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当品类别 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;购入价 : {BuyPrice}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数量 : {Quantity}</p>
+                                    <p>当品详情 : {Specification}</p>
                                     <p>可提供附件 : {DocDetail}</p>
-                                    <p>物品描述 : {Discript}</p>
+                                    <p>当品描述 : {Discript}</p>
                                 </Space>
                             </Space>
                         </Form.Item>
@@ -949,9 +952,9 @@ export default class ManageApply extends Component {
                 <Col span={24}>
                     <Form.Item
                     name="ANotes"
-                    label="备注"
+                    label="备注："
                     >
-                    <Input.TextArea readOnly rows={2}/>
+                    <Input readOnly/>
                     </Form.Item>
                 </Col>
                 </Row>
@@ -971,7 +974,7 @@ export default class ManageApply extends Component {
                 </Space>
             }
             >
-            <Form layout="vertical" ref={this.formRef2} hideRequiredMark
+            <Form layout="horizontal" ref={this.formRef2} hideRequiredMark
             initialValues={{UserID,UserName,Gender,Address,Phone,Email,Wechat,ANotes}}
             >
                 <Row gutter={16}>
@@ -1009,12 +1012,12 @@ export default class ManageApply extends Component {
                     </Col>
                 </Row>
                 <hr/>
-                <p style={{margin:0,minHeight:'30px'}}>用户信息</p>
+                <p style={{margin:0,minHeight:'30px'}}>当户信息</p>
                 <Row gutter={16}>
                     <Col span={8}>
                         <Form.Item
                         name="UserID"
-                        label="用户证件号"
+                        label="当户证件号"
                         >
                         <Input readOnly/>
                         </Form.Item>
@@ -1022,7 +1025,7 @@ export default class ManageApply extends Component {
                     <Col span={8}>
                         <Form.Item
                         name="UserName"
-                        label="用户姓名"
+                        label="当户姓名"
                         >
                         <Input readOnly/>
                         </Form.Item>
@@ -1040,7 +1043,7 @@ export default class ManageApply extends Component {
                     <Col span={8}>
                         <Form.Item
                         name="Phone"
-                        label="联系电话"
+                        label="联 系 电 话"
                         >
                         <Input readOnly />
                         </Form.Item>
@@ -1066,9 +1069,9 @@ export default class ManageApply extends Component {
                 <Col span={24}>
                     <Form.Item
                     name="Address"
-                    label="详细住址"
+                    label="详 细 住 址"
                     >
-                    <Input.TextArea rows={2} readOnly/>
+                    <Input readOnly/>
                     </Form.Item>
                 </Col>
                 </Row>
@@ -1110,7 +1113,7 @@ export default class ManageApply extends Component {
                             <Space size={20} align='start' style={{display:'flex',marginRight:'50px'}}>
                                 <Image
                                 preview={{visible:false}}
-                                width={200}
+                                width={150}
                                 src={images[0]}
                                 onClick={() => this.setState({ImageVisible:true})}
                                 />

@@ -101,7 +101,8 @@ export default class Company extends Component {
         title: '当行编号',
         dataIndex: 'PSID',
         key: 'PSID',
-        editable: false
+        editable: false,
+        width: '100px'
       },
       {
         title: '当行名称',
@@ -111,7 +112,8 @@ export default class Company extends Component {
       {
         title: '注册资本',
         dataIndex: 'RegCapital',
-        key: 'RegCapital'
+        key: 'RegCapital',
+        width: '100px'
       },
       {
         title: '成立时间',
@@ -142,12 +144,13 @@ export default class Company extends Component {
         key: 'Representative'
       },
       {
-        title: 'operation',
+        title: '操作',
         dataIndex: 'operation',
+        width: '90px',
         render: (_, record) =>
           this.state.dataSource.length >= 1 ? (
-            <Popconfirm title="Sure to delete?" onConfirm={() => this.handleDelete(record.key)}>
-              <a>Delete</a>
+            <Popconfirm title="确认删除吗?" onConfirm={() => this.handleDelete(record.key)}>
+              <a>删除</a>
             </Popconfirm>
           ) : null,
       },
@@ -442,7 +445,7 @@ export default class Company extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>内部管理</Breadcrumb.Item>
           <Breadcrumb.Item>当行信息管理</Breadcrumb.Item>
         </Breadcrumb>
@@ -452,6 +455,7 @@ export default class Company extends Component {
             新增分行
           </Button>
           <Table
+            size='small'
             components={components}
             rowClassName={() => 'editable-row'}
             bordered

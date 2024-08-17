@@ -98,6 +98,17 @@ export default class Pawner extends Component {
 
     this.columns = [
       {
+        title: '操作',
+        dataIndex: 'operation',
+        width: '150px',
+        render: (_, record) =>
+          this.state.dataSource.length >= 1 ? (
+            <div>
+              典当权限 : <Switch checked={record.AuditState==='1'?true:false} onChange={(e)=>this.handleAuditState(e,record.UserID)}/>
+            </div>
+          ) : null
+      },
+      {
         title: '证件号',
         dataIndex: 'UserID',
         key: 'UserID',
@@ -139,18 +150,7 @@ export default class Pawner extends Component {
         title: '联系电话',
         dataIndex: 'Phone',
         key: 'Phone',
-        width: '180px'
-      },
-      {
-        title: '操作',
-        dataIndex: 'operation',
-        width: '160px',
-        render: (_, record) =>
-          this.state.dataSource.length >= 1 ? (
-            <div>
-              典当权限 : <Switch checked={record.AuditState==='1'?true:false} onChange={(e)=>this.handleAuditState(e,record.UserID)}/>
-            </div>
-          ) : null
+        width: '130px'
       },
     ];
 
@@ -299,18 +299,19 @@ export default class Pawner extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>典当监管</Breadcrumb.Item>
           <Breadcrumb.Item>当户信息管理</Breadcrumb.Item>
         </Breadcrumb>
         <div className="site-layout-background" style={{ padding: 10 }}>
           <Table
+            size='small'
             components={components}
             rowClassName={() => 'editable-row'}
             bordered
             dataSource={dataSource}
             columns={columns}
-            pagination={{ pageSize: 5 }}
+            pagination={{ pageSize: 10 }}
             onRow={record => {
               return {
                 onDoubleClick: event => {

@@ -157,7 +157,8 @@ export default class SeverPawn extends Component {
         title: '当物数量',
         dataIndex: 'Quantity',
         key: 'Quantity',
-        width: '90px'
+        width: '90px',
+        sorter: (a, b) => a.Quantity*1 - b.Quantity*1
       },
       {
         title: '总当价',
@@ -433,7 +434,7 @@ export default class SeverPawn extends Component {
     notification.open({
       message: 'Notification',
       description:
-        <div style={{whiteSpace: 'pre-wrap'}}>已成功绝当，绝当单号为{newPTID},可于典当信息管理模块中查看~</div>,
+        <div style={{whiteSpace: 'pre-wrap'}}>已成功绝当，绝当单号为{newPTID},可于当单信息管理模块中查看~</div>,
       icon: <SmileOutlined style={{color:'orange'}}/>,
       duration: 2
     });
@@ -505,6 +506,7 @@ export default class SeverPawn extends Component {
   onSubmit4 = async () => {
     const {dataSource1} = this.state
   
+    //当品状态->绝当
     //物品状态->绝当
     for (const item of dataSource1) {
       const {PIID} = item;
@@ -646,7 +648,7 @@ export default class SeverPawn extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>典当管理</Breadcrumb.Item>
           <Breadcrumb.Item>绝当管理</Breadcrumb.Item>
         </Breadcrumb>
@@ -691,24 +693,24 @@ export default class SeverPawn extends Component {
           bodyStyle={{ paddingBottom: 80 }}
           extra={
             <Space>
-              <Button onClick={this.onClose}>返回</Button>
+              {/* <Button onClick={this.onClose}>返回</Button> */}
               <Button onClick={this.showModal} type="primary">绝当</Button>
             </Space>
           }
         >
-          <Form layout="vertical" ref={this.formRef} hideRequiredMark
+          <Form layout="horizontal" ref={this.formRef} hideRequiredMark
           initialValues={{PTID,UserID,UserName,StartDate,EndDate,PSstaffIDA,Notes,Quantity,TotalPrice}}
           >
             <Row gutter={16}>
-              <Col span={12}>
+              <Col span={10}>
                 <Form.Item
                   name="PTID"
-                  label="当票编号"
+                  label="当 票 编 号"
                 >
                   <Input readOnly />
                 </Form.Item>
               </Col>
-              <Col span={12}>
+              <Col span={14}>
                 <Form.Item
                   name="PawnDate"
                   label="典当期限"
@@ -719,7 +721,7 @@ export default class SeverPawn extends Component {
               </Col>
             </Row>
             <Row gutter={16}>
-              <Col span={8}>
+              <Col span={10}>
                 <Form.Item
                   name="UserID"
                   label="当户证件号"
@@ -727,7 +729,7 @@ export default class SeverPawn extends Component {
                   <Input readOnly onPressEnter={this.searchUserInfo}/>
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={7}>
                 <Form.Item
                   name="UserName"
                   label="当户姓名"
@@ -735,17 +737,25 @@ export default class SeverPawn extends Component {
                 <Input readOnly />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={7}>
                 <Form.Item
                 name="Gender"
-                label="性别"
+                label="性&nbsp;&nbsp;&nbsp;&nbsp;别"
                 >
                   <Input readOnly />
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={16}>
-              <Col span={8}>
+              <Col span={10}>
+                <Form.Item
+                  name="Email"
+                  label="邮 箱 地 址"
+                >
+                  <Input readOnly value={this.state.Email}/>
+                </Form.Item>
+              </Col>
+              <Col span={7}>
                 <Form.Item
                   name="Phone"
                   label="联系电话"
@@ -753,15 +763,7 @@ export default class SeverPawn extends Component {
                   <Input readOnly value={this.state.Phone} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
-                <Form.Item
-                  name="Email"
-                  label="邮箱地址"
-                >
-                  <Input readOnly value={this.state.Email}/>
-                </Form.Item>
-              </Col>
-              <Col span={8}>
+              <Col span={7}>
                 <Form.Item
                   name="Wechat"
                   label="微信号"
@@ -774,9 +776,9 @@ export default class SeverPawn extends Component {
               <Col span={24}>
                 <Form.Item
                   name="Address"
-                  label="详细住址"
+                  label="详 细 住 址"
                 >
-                  <Input.TextArea readOnly rows={2} value={this.state.Address}/>
+                  <Input readOnly value={this.state.Address}/>
                 </Form.Item>
               </Col>
             </Row>
@@ -799,10 +801,10 @@ export default class SeverPawn extends Component {
                       name={key}
                       label={index+1*1}
                     >
-                      <Space size={20} align='start' style={{display:'flex'}}>
+                      <Space size={10} align='start' style={{display:'flex'}}>
                         <Image
                         preview={{visible:false}}
-                        width={200}
+                        width={100}
                         src={images[0]}
                         onClick={() => this.setState({ImageVisible:true})}
                         />
@@ -816,17 +818,16 @@ export default class SeverPawn extends Component {
                         </Image.PreviewGroup>
                         </div>
                         <Space size={5} direction="vertical">
-                            <p>当品编号 : {PIID}</p>
-                            <p>当品名称 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数量 : {Quantity}</p>
-                            <div style={{marginBottom:'14px'}}>
-                              估价 : <InputNumber defaultValue={AssessPrice} style={{width:'100px'}} bordered={false}
+                            <p>当品编号 : {PIID}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名称 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;类别 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数量 : {Quantity}</p>
+                            <div style={{marginBottom:'2px'}}>
+                              估价 : <InputNumber defaultValue={AssessPrice} style={{width:'100px',marginRight:'10px'}}
                               formatter={value => `￥${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                               parser={value => value.replace(/\$\s?|(,*)/g, '')}/>
-                              折价率 : <InputNumber defaultValue={Rate} style={{width:'60px'}} bordered={false}
+                              折价率 : <InputNumber defaultValue={Rate} style={{width:'60px',marginRight:'10px'}}
                               min={0} max={100}
                               formatter={value => `${value} %`}
                               parser={value => value.replace('%', '')}/>
-                              当价 : <InputNumber defaultValue={Amount} style={{width:'100px'}} bordered={false}
+                              当价 : <InputNumber defaultValue={Amount} style={{width:'100px',marginRight:'10px'}}
                               formatter={value => `￥${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                               parser={value => value.replace(/\$\s?|(,*)/g, '')}/>
                             </div>
@@ -844,10 +845,10 @@ export default class SeverPawn extends Component {
               <Col span={24}>
                 <Form.Item
                   name="Notes"
-                  label="当单标注"
+                  label="当 单 标 注"
                   rules={[{ required: true, message: '请输入当单标注内容' }]}
                 >
-                  <Input.TextArea readOnly rows={2} placeholder="无" />
+                  <Input readOnly placeholder="无" />
                 </Form.Item>
               </Col>
             </Row>

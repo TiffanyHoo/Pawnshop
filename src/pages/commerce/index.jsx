@@ -83,6 +83,7 @@ export default function Commerce() {
                 onClick={()=>{store.dispatch(createCommerceAction({})); window.history.back(-1)}}>
                     退出
                 </Button>
+                <p style={{float:'right',color:'white',marginRight:50}}>操作人员： {JSON.parse(sessionStorage.getItem("userinfo")).ComMemName}</p>
             </Header>
             <Layout>
                 <Sider collapsible collapsed={state.collapsed} onCollapse={onCollapse}>
@@ -115,7 +116,7 @@ export default function Commerce() {
                 </Sider>
                 <Layout className="site-layout">
                     <Content style={{ margin: '10px 16px' }}>
-                        <div className="site-layout-background" style={{ padding: 10, height: '80vh' }}>
+                        <div className="site-layout-background" style={{ padding: 10, height: '83vh' }}>
                         <Routes>
                             <Route path="qualification/pawnshopinfo" element={<PawnshopInfo/>}/>   
                             <Route path="qualification/registrationaudit" element={<RegistrationAudit/>}/>    

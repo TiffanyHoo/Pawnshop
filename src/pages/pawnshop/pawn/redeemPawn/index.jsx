@@ -5,7 +5,7 @@ import Qs from 'qs'
 import store from '../../../../redux/store'
 import '../../../../style/common.less'
 //import 'antd/dist/antd.css';
-import { PlusOutlined, SmileOutlined, DownOutlined } from '@ant-design/icons';
+import { SearchOutlined, SmileOutlined, DownOutlined } from '@ant-design/icons';
 import moment from 'moment';
 
 const { RangePicker } = DatePicker;
@@ -115,37 +115,43 @@ export default class RedeemPawn extends Component {
         title: '当票编号',
         dataIndex: 'PTID',
         key: 'PTID',
-        width: '90px'
+        width: '90px',
+        ...this.getColumnSearchProps('PTID','当票编号'),
       },
       {
         title: '当户姓名',
         dataIndex: 'UserName',
         key: 'UserName',
-        width: '90px'
+        width: '90px',
+        ...this.getColumnSearchProps('UserName','当户姓名'),
       },
       {
         title: '当户证件号',
         dataIndex: 'UserID',
         key: 'UserID',
-        width: '130px'
+        width: '130px',
+        ...this.getColumnSearchProps('UserID','当户证件号'),
       },
       {
         title: '开票日期',
         dataIndex: 'StartDate',
         key: 'StartDate',
-        width: '100px'
+        width: '100px',
+        ...this.getColumnSearchProps('StartDate','开票日期')
       },
       {
         title: '到期日期',
         dataIndex: 'EndDate',
         key: 'EndDate',
-        width: '100px'
+        width: '100px',
+        ...this.getColumnSearchProps('EndDate','到期日期')
       },
       {  
         title: '当物数量',
         dataIndex: 'Quantity',
         key: 'Quantity',
-        width: '90px'
+        width: '90px',
+        sorter: (a, b) => a.Quantity*1 - b.Quantity*1
       },
       {
         title: '总当价',
@@ -191,6 +197,72 @@ export default class RedeemPawn extends Component {
       EID: ''
     };
   }
+
+  //搜索
+  getColumnSearchProps = (dataIndex,name) => ({
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+      <div style={{ padding: 8 }}>
+          <Input
+          ref={node => {
+              this.searchInput = node;
+          }}
+          placeholder={`搜索 ${name}`}
+          value={selectedKeys[0]}
+          onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{ marginBottom: 8, display: 'block', width: 168 }}
+          />
+          <Space>
+          <Button
+              type="primary"
+              onClick={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 80 }}
+          >
+              搜索
+          </Button>
+          <Button onClick={() => this.handleReset(clearFilters)} size="small" style={{ width: 80 }}>
+              重置
+          </Button>
+          {/* <Button
+              type="link"
+              size="small"
+              onClick={() => {
+              confirm({ closeDropdown: false });
+              this.setState({
+                  searchText: selectedKeys[0],
+                  searchedColumn: dataIndex,
+              });
+              }}
+          >
+              过滤
+          </Button> */}
+          </Space>
+      </div>
+      ),
+      filterIcon: filtered => <SearchOutlined style={{ color: filtered ? 'orange' : undefined }} />,
+      onFilter: (value, record) =>
+      record[dataIndex]
+          ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
+          : '',
+      onFilterDropdownVisibleChange: visible => {
+          if (visible) {
+              setTimeout(() => this.searchInput.select(), 100);
+          }
+      },
+      // render: text =>
+      //      this.state.searchedColumn == dataIndex ? (
+      //         <Highlighter
+      //         highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+      //         searchWords={[this.state.searchText]}
+      //         autoEscape
+      //         textToHighlight={text ? text.toString() : ''}
+      //         />
+      //     ) : (
+      //         text
+      //     ),
+  });
 
   componentDidMount(){
     const nowDate = moment(new Date()).format('YYYY-MM-DD')
@@ -434,6 +506,7 @@ export default class RedeemPawn extends Component {
       }
   
       //当品状态->未在当
+      //物品品状态->未在当
       await axios({
         method: 'post',
         url: 'http://localhost:3000/redeemPawn',
@@ -444,7 +517,7 @@ export default class RedeemPawn extends Component {
     notification.open({
       message: 'Notification',
       description:
-        <div style={{whiteSpace: 'pre-wrap'}}>已成功赎当，可于典当信息管理模块中查看~</div>,
+        <div style={{whiteSpace: 'pre-wrap'}}>已成功赎当，可于当单信息管理模块中查看~</div>,
       icon: <SmileOutlined style={{color:'orange'}}/>,
       duration: 2
     });
@@ -521,7 +594,7 @@ export default class RedeemPawn extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>典当管理</Breadcrumb.Item>
           <Breadcrumb.Item>赎当管理</Breadcrumb.Item>
         </Breadcrumb>
@@ -562,20 +635,20 @@ export default class RedeemPawn extends Component {
         
         <Drawer
           title="查看当单"
-          width={720}
+          width={780}
           onClose={this.onClose}
           visible={this.state.visible}
           bodyStyle={{ paddingBottom: 80 }}
           extra={
             <Space>
-              <Button onClick={this.onClose}>返回</Button>
+              {/* <Button onClick={this.onClose}>返回</Button> */}
               <Button onClick={this.showModal} type="primary">赎当</Button>
             </Space>
           }
         >
-          <Form layout="vertical" ref={this.formRef} hideRequiredMark>
+          <Form layout="horizontal" ref={this.formRef} hideRequiredMark>
             <Row gutter={16}>
-              <Col span={12}>
+              <Col span={8}>
                 <Form.Item
                   name="PTID"
                   label="当票编号"
@@ -583,7 +656,7 @@ export default class RedeemPawn extends Component {
                   <Input readOnly />
                 </Form.Item>
               </Col>
-              <Col span={12}>
+              <Col span={16}>
                 <Form.Item
                   name="PawnDate"
                   label="典当期限"
@@ -595,8 +668,8 @@ export default class RedeemPawn extends Component {
             </Row>
             <hr/>
             <p style={{margin:0,minHeight:'30px'}}>当户信息</p>
-            <Row gutter={16}>
-              <Col span={8}>
+            <Row gutter={16} className="myRow">
+              <Col span={10}>
                 <Form.Item
                   name="UserID"
                   label="当户证件号"
@@ -604,7 +677,7 @@ export default class RedeemPawn extends Component {
                   <Input readOnly onPressEnter={this.searchUserInfo}/>
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={7}>
                 <Form.Item
                   name="UserName"
                   label="当户姓名"
@@ -612,17 +685,25 @@ export default class RedeemPawn extends Component {
                 <Input readOnly />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={7}>
                 <Form.Item
                 name="Gender"
-                label="性别"
+                label="性&nbsp;&nbsp;&nbsp;&nbsp;别"
                 >
                   <Input readOnly />
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
-              <Col span={8}>
+            <Row gutter={16} className="myRow">
+              <Col span={10}>
+                <Form.Item
+                  name="Email"
+                  label="邮 箱 地 址"
+                >
+                  <Input readOnly value={this.state.Email}/>
+                </Form.Item>
+              </Col>
+              <Col span={7}>
                 <Form.Item
                   name="Phone"
                   label="联系电话"
@@ -630,15 +711,7 @@ export default class RedeemPawn extends Component {
                   <Input readOnly value={this.state.Phone} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
-                <Form.Item
-                  name="Email"
-                  label="邮箱地址"
-                >
-                  <Input readOnly value={this.state.Email}/>
-                </Form.Item>
-              </Col>
-              <Col span={8}>
+              <Col span={7}>
                 <Form.Item
                   name="Wechat"
                   label="微信号"
@@ -647,18 +720,18 @@ export default class RedeemPawn extends Component {
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={24}>
                 <Form.Item
                   name="Address"
-                  label="详细住址"
+                  label="详 细 住 址"
                 >
-                  <Input.TextArea readOnly rows={2} value={this.state.Address}/>
+                  <Input readOnly value={this.state.Address}/>
                 </Form.Item>
               </Col>
             </Row>
             <hr/>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={24}>
                 <Form.Item
                   name="detail"
@@ -677,10 +750,10 @@ export default class RedeemPawn extends Component {
                       name={key}
                       label={index+1*1}
                     >
-                      <Space size={20} align='start' style={{display:'flex',marginRight:'50px'}}>
+                      <Space size={10} align='start' style={{display:'flex',marginRight:'50px'}}>
                         <Image
                         preview={{visible:false}}
-                        width={200}
+                        width={100}
                         src={images[0]}
                         onClick={() => this.setState({ImageVisible:true})}
                         />
@@ -694,12 +767,11 @@ export default class RedeemPawn extends Component {
                         </Image.PreviewGroup>
                         </div>
                         <Space size={5} direction="vertical">
-                            <p>当品编号 : {PIID}</p>
-                            <p>当品名称 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数量 : {Quantity}</p>
+                            <p>当品编号 : {PIID}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名称 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;类别 : {title}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;数量 : {Quantity}</p>
                             <p>估价 : {AssessPrice}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;折价率 : {Rate}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;当价 : <span style={{color:'orange'}}>{Amount}</span></p>
                             <p>物品详情 : {Specification?Specification:'无'}</p>
                             <p>包含附件 : {Documents?Documents:'无'}</p>
-                            <p>物品描述 : {Discript?Discript:'无'}</p>
+                            {/* <p>物品描述 : {Discript?Discript:'无'}</p> */}
                         </Space>
                       </Space>
                     </Form.Item>
@@ -711,14 +783,14 @@ export default class RedeemPawn extends Component {
               <Col span={24}>
                 <Form.Item
                   name="Notes"
-                  label="当单标注"
+                  label="当 单 标 注"
                   rules={[{ required: true, message: '请输入当单标注内容' }]}
                 >
-                  <Input.TextArea readOnly rows={2} placeholder="无" />
+                  <Input readOnly placeholder="无" />
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={12}>
                 <Form.Item
                   name="PSstaffIDA"
@@ -729,7 +801,7 @@ export default class RedeemPawn extends Component {
               </Col>
             </Row>
             <hr/>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={24}>
                 <Form.Item
                   name="expense"
@@ -739,7 +811,7 @@ export default class RedeemPawn extends Component {
                 </Form.Item>
               </Col>
             </Row>  
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={8}>
                 <Form.Item
                   name="Interest"
@@ -765,7 +837,7 @@ export default class RedeemPawn extends Component {
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={8}>
                 <Form.Item
                   name="FreightFare"
@@ -791,7 +863,7 @@ export default class RedeemPawn extends Component {
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={8}>
                 <Form.Item
                   name="NotaryFare"
@@ -817,13 +889,13 @@ export default class RedeemPawn extends Component {
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
+            <Row gutter={16} className="myRow">
               <Col span={24}>
                 <Form.Item
                   name="ENotes"
                   label="费用备注"
                 >
-                  <Input.TextArea rows={2} value={this.state.ENotes} placeholder="无" />
+                  <Input value={this.state.ENotes} placeholder="无" />
                 </Form.Item>
               </Col>
             </Row>
@@ -893,7 +965,7 @@ export default class RedeemPawn extends Component {
                   name="PTNotes"
                   label="当单标注"
                 >
-                  <Input.TextArea readOnly rows={2} placeholder="无" />
+                  <Input readOnly placeholder="无" />
                 </Form.Item>
               </Col>
             </Row>

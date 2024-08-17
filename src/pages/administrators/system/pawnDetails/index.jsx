@@ -28,6 +28,8 @@ export default class PawnDetails extends Component {
       editInputIndexB: -1,
       editInputValueA: '',
       editInputValueB: '',
+      selectedKeys:[],
+      expandedKeys:[]
     };
   }
 
@@ -127,7 +129,7 @@ export default class PawnDetails extends Component {
 
   selectTreeNode = async (treeNode) => {
     if(treeNode.length===0){
-      this.setState({selectedNode:"",title:"",tags:[],DocTags:[]})
+      this.setState({selectedNode:"",title:"",tags:[],DocTags:[],selectedKeys:[]})
       setTimeout(() => {
         this.formRef.current.setFieldsValue({
           title: ""
@@ -162,7 +164,7 @@ export default class PawnDetails extends Component {
 
     this.setState({
       tags, DocTags, selectedNode, title: selectedNode.title, btnType:"",
-      tnode: treeNode
+      tnode: treeNode, selectedKeys: [treeNode[0]]
     })
 
     setTimeout(() => {
@@ -170,6 +172,11 @@ export default class PawnDetails extends Component {
         title: selectedNode.title
       })
     }, 200);
+  }
+
+  expandTree = (expandedKeys) => {
+    console.log(expandedKeys)
+    this.setState({expandedKeys})
   }
 
   handleAdd = (e) =>{
@@ -188,6 +195,7 @@ export default class PawnDetails extends Component {
   }
 
   handleDelete = () =>{
+    var that = this
     const {selectedNode} = this.state
 
     if(selectedNode === ""){
@@ -204,21 +212,35 @@ export default class PawnDetails extends Component {
       method: 'post',
       url: 'http://localhost:3000/modCategory',
       data: Qs.stringify(data)
-    }).then(response=>{
-      if(response.data!==''){
-        notification['error']({
-          message: '注意',
-          description: response.data,
-          duration: 2
-        });
-      }else{
-        notification['warning']({
-          message: '消息',
-          description:
-            <p>已删除类目{selectedNode.title}及其子类</p>,
-        });
-        this.setState({selectedNode:{}})
+    }).then(async response=>{
+      const selectedKeys = [response.data[0].nodeid]
+      // if(response.data!==''){
+      //   notification['error']({
+      //     message: '注意',
+      //     description: response.data,
+      //     duration: 2
+      //   });
+      // }else{
+      //   notification['warning']({
+      //     message: '消息',
+      //     description:
+      //       <p>已删除类目{selectedNode.title}及其子类</p>,
+      //   });
+      //   this.setState({selectedNode:{},selectedKeys})
+      // }
+      notification['warning']({
+        message: '消息',
+        description:
+          <p>已删除类目{selectedNode.title}及其子类</p>,
+      });
+      await that.getData();
+      let {expandedKeys} = that.state
+      let index = expandedKeys.indexOf(selectedNode.ParentNode)
+      if (index > -1) {
+        expandedKeys.splice(index,1)
       }
+
+      that.setState({selectedNode:{},selectedKeys})
     }).catch(error=>{
       console.log(error);
     });
@@ -234,7 +256,10 @@ export default class PawnDetails extends Component {
   }
 
   handleSave = async () =>{
-    const {selectedNode,btnType,title} = this.state
+    var that = this
+    const {selectedNode,btnType,title,tags,DocTags} = this.state
+    const SpeDetail = tags.join(";") 
+    const DocDetail = DocTags.join(";") 
     if(selectedNode === ""){
       message.warning("请先选择指定类目");
       return;
@@ -242,33 +267,49 @@ export default class PawnDetails extends Component {
     let data = {
       operation: btnType===""?"save":btnType,
       id: selectedNode.CID,
-      title
+      title,SpeDetail,DocDetail
     }
     await axios({
       method: 'post',
       url: 'http://localhost:3000/modCategory',
       data: Qs.stringify(data)
-    }).then(response=>{
-      if(response.data!==''){
-        notification['error']({
-          message: '注意',
-          description: response.data,
-          duration: 2
-        });
-      }else{
-        notification['success']({
-          message: '消息',
-          description:
-            <p>已成功修改类目信息</p>,
-        });
+    }).then(async response=>{
+      const selectedKeys = [response.data[0].nodeid]
+      // if(response.data!==''){
+      //   notification['error']({
+      //     message: '注意',
+      //     description: response.data,
+      //     duration: 2
+      //   });
+      // }else{
+      //   notification['success']({
+      //     message: '消息',
+      //     description:
+      //       <p>已成功修改类目信息</p>,
+      //   });
+      // }
+      notification['success']({
+        message: '消息',
+        description:
+          <p>已成功修改类目信息</p>,
+      });
+
+      await that.getData();
+
+      const nodes = selectedNode.Ancestor.split('#')
+      let {expandedKeys} = that.state
+      if(btnType==='son'){
+        await nodes.forEach((e)=>{
+          let index = expandedKeys.indexOf(e.CID)
+          if(index===-1&&e.CID!=''){
+            expandedKeys.push(selectedNode.CID)
+          }
+        })    
       }
+      that.setState({selectedKeys,expandedKeys})
     }).catch(error=>{
       console.log(error);
     });
-    setTimeout(() => {
-      this.getData();
-    }, 200);
-
   }
 
   //标签编辑
@@ -343,25 +384,28 @@ export default class PawnDetails extends Component {
   };
 
   render() {
-    const { dataSource, DocTags } = this.state;
+    const { dataSource, DocTags, selectedKeys, expandedKeys } = this.state;
     const { tags, inputVisibleA, inputVisibleB, inputValueA, inputValueB, editInputIndexA, editInputIndexB, editInputValueA, editInputValueB } = this.state;
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>系统设置</Breadcrumb.Item>
           <Breadcrumb.Item>典当类名设置</Breadcrumb.Item>
         </Breadcrumb>
-        <div className="site-layout-background" style={{ padding: 10, height: '80vh'}}>
+        <div className="site-layout-background" style={{ padding: 10, height: '83vh'}}>
           <Layout style={{ height: '70vh' }}>
-              <Sider theme='light' width={300} style={{padding:10, border:'1px solid #eee'}}>
+              <Sider theme='light' width={230} style={{padding:10, border:'1px solid #eee'}}>
                 <Tree
                   showLine
+                  expandedKeys={expandedKeys}
+                  selectedKeys={selectedKeys}
                   switcherIcon={<DownOutlined />}
                   loadData={this.onLoadData}
                   treeData={dataSource}
                   height={500} 
                   onSelect={this.selectTreeNode}
+                  onExpand={this.expandTree}
                 />
               </Sider>
               <Content style={{ paddingLeft: 10, backgroundColor: 'white' }}>
@@ -380,7 +424,7 @@ export default class PawnDetails extends Component {
                   </Button>
                   <Form layout="vertical" ref={this.formRef} style={{padding: 10}} >
                     <Form.Item name="title" label="类目名称" rules={[{ required: true, message: '请输入类目名称' }]}>
-                      <Input placeholder="请输入类目名称" onChange={(e)=>this.setState({title:e.target.value})}/>
+                      <Input placeholder="请输入类目名称" onChange={(e)=>this.setState({title:e.target.value})} style={{width: 470}}/>
                     </Form.Item>
                     <Form.Item name="SpeDetail" label="规格属性">
                       <>
@@ -442,6 +486,7 @@ export default class PawnDetails extends Component {
                             onChange={(e)=>{this.setState({ inputValueA: e.target.value })}}
                             onBlur={this.handleInputConfirmA}
                             onPressEnter={this.handleInputConfirmA}
+                            style={{width:120}}
                           />
                         )}
                         {!inputVisibleA && (
@@ -511,6 +556,7 @@ export default class PawnDetails extends Component {
                             onChange={(e)=>{this.setState({ inputValueB: e.target.value })}}
                             onBlur={this.handleInputConfirmB}
                             onPressEnter={this.handleInputConfirmB}
+                            style={{width:120}}
                           />
                         )}
                         {!inputVisibleB && (

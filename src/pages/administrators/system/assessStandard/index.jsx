@@ -279,11 +279,11 @@ export default class AssessStandard extends Component {
 
     return (
       <div>
-        <Breadcrumb style={{ margin: '16px 0' }}>
+        <Breadcrumb style={{ margin: '10px 0' }}>
           <Breadcrumb.Item>系统设置</Breadcrumb.Item>
           <Breadcrumb.Item>估价标准设置</Breadcrumb.Item>
         </Breadcrumb>
-        <div className="site-layout-background" style={{ padding: 10, height: '80vh'}}>
+        <div className="site-layout-background" style={{ padding: 10, height: '83vh'}}>
           <Layout style={{ height: '70vh' }}>
               <Sider theme='light' style={{padding:10, border:'1px solid #eee'}}>
                 <Tree
