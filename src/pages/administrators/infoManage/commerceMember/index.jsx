@@ -1,8 +1,29 @@
-import React, { Component, useContext, useState, useEffect, useRef } from 'react'
-import { Breadcrumb, Table, Input, Button, Popconfirm, Form, Drawer, Col, Row, Select, DatePicker, Space, Tooltip, notification } from 'antd'
-import axios from 'axios'
-import Qs from 'qs'
-import '../../../../style/common.less'
+import React, {
+  Component,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
+import {
+  Breadcrumb,
+  Table,
+  Input,
+  Button,
+  Popconfirm,
+  Form,
+  Drawer,
+  Col,
+  Row,
+  Select,
+  DatePicker,
+  Space,
+  Tooltip,
+  notification,
+} from 'antd';
+import axios from 'axios';
+import Qs from 'qs';
+import '../../../../style/common.less';
 //import 'antd/dist/antd.css';
 import { PlusOutlined, SmileOutlined } from '@ant-design/icons';
 import moment from 'moment';
@@ -91,7 +112,6 @@ const EditableCell = ({
   return <td {...restProps}>{childNode}</td>;
 };
 
-
 export default class CommerceMember extends Component {
   constructor(props) {
     super(props);
@@ -104,40 +124,46 @@ export default class CommerceMember extends Component {
         render: (_, record) =>
           this.state.dataSource.length >= 1 ? (
             <div>
-              <Popconfirm title="确认初始化密码吗?" onConfirm={() => this.initialPwd(record)}>
+              <Popconfirm
+                title="确认初始化密码吗?"
+                onConfirm={() => this.initialPwd(record)}
+              >
                 <a>初始化密码</a>
               </Popconfirm>
               &nbsp;&nbsp;&nbsp;&nbsp;
-              <Popconfirm title="确认删除人员吗?" onConfirm={() => this.delMember(record)}>
+              <Popconfirm
+                title="确认删除人员吗?"
+                onConfirm={() => this.delMember(record)}
+              >
                 <a>删除</a>
               </Popconfirm>
             </div>
-          ) : null
+          ) : null,
       },
       {
         title: '工号',
         dataIndex: 'ComMemID',
         key: 'ComMemID',
         editable: false,
-        width: '8%'
+        width: '8%',
       },
       {
         title: '姓名',
         dataIndex: 'ComMemName',
         key: 'ComMemName',
-        width: '10%'
+        width: '10%',
       },
       {
         title: '性别',
         dataIndex: 'GenderChar',
         key: 'GenderChar',
-        width: '8%'
+        width: '8%',
       },
       {
         title: '出生日期',
         dataIndex: 'BirthDate',
         key: 'BirthDate',
-        width: '12%'
+        width: '12%',
       },
       {
         title: '地址',
@@ -146,17 +172,17 @@ export default class CommerceMember extends Component {
         ellipsis: {
           showTitle: false,
         },
-        render: Address => (
+        render: (Address) => (
           <Tooltip placement="topLeft" title={Address}>
             {Address}
           </Tooltip>
-        )
+        ),
       },
       {
         title: '联系电话',
         dataIndex: 'Phone',
         key: 'Phone',
-        width: '12%'
+        width: '12%',
       },
       {
         title: '邮箱',
@@ -165,16 +191,16 @@ export default class CommerceMember extends Component {
         ellipsis: {
           showTitle: false,
         },
-        render: Email => (
+        render: (Email) => (
           <Tooltip placement="topLeft" title={Email}>
             {Email}
           </Tooltip>
         ),
-      }
+      },
     ];
 
     this.state = {
-      visible: false ,
+      visible: false,
       DrawerTitle: '新增商务部人员',
       dataSource: [],
       count: 0,
@@ -185,109 +211,119 @@ export default class CommerceMember extends Component {
       Address: '',
       Phone: '',
       Email: '',
-      Notes: ''
+      Notes: '',
     };
   }
 
-  componentDidMount(){
-    this.getData()
+  componentDidMount() {
+    this.getData();
   }
 
-  formRef = React.createRef()
+  formRef = React.createRef();
 
   getData = async () => {
-    let dataSource = []
-    await axios.get('/getComMem').then(response=>{
-        if(response.data.length === 0){
-          console.log('无数据')
-        }else{
-          dataSource = response.data
+    let dataSource = [];
+    await axios
+      .get('/getComMem')
+      .then((response) => {
+        if (response.data.length === 0) {
+          console.log('无数据');
+        } else {
+          dataSource = response.data;
         }
-    }).catch(error=>{
+      })
+      .catch((error) => {
         console.log(error);
-    });
+      });
 
-    dataSource = dataSource.map((obj,index) => {
-      if(obj.Gender==='0'){
+    dataSource = dataSource.map((obj, index) => {
+      if (obj.Gender === '0') {
         return {
           ...obj,
           GenderChar: '男',
-          key: index
+          key: index,
         };
-      }else if(obj.Gender==='1'){
+      } else if (obj.Gender === '1') {
         return {
           ...obj,
           GenderChar: '女',
-          key: index
+          key: index,
         };
-      }else{
-
-      }   
+      } else {
+      }
     });
 
     this.setState({
       dataSource,
-      count: dataSource.length
-    })
-  }
+      count: dataSource.length,
+    });
+  };
 
   //初始化密码
-  initialPwd = (record) =>{
+  initialPwd = (record) => {
     let data = {
       id: record.ComMemID,
-      usertype: 'ComMem'
-    }
+      usertype: 'ComMem',
+    };
 
     axios({
       method: 'post',
       url: 'http://localhost:3000/initialPwd',
-      data: Qs.stringify(data)
-    }).then(response=>{
-      notification.open({
-        message: '消息',
-        description:
-          <div style={{whiteSpace: 'pre-wrap'}}>
-            {record.ComMemID}&nbsp;{record.ComMemName}&nbsp;已成功初始化密码
-            <br/>
-            初始密码为123456
-          </div>,
-        icon: <SmileOutlined style={{color:'orange'}}/>,
-        duration: 2
+      data: Qs.stringify(data),
+    })
+      .then((response) => {
+        notification.open({
+          message: '消息',
+          description: (
+            <div style={{ whiteSpace: 'pre-wrap' }}>
+              {record.ComMemID}&nbsp;{record.ComMemName}&nbsp;已成功初始化密码
+              <br />
+              初始密码为123456
+            </div>
+          ),
+          icon: <SmileOutlined style={{ color: 'orange' }} />,
+          duration: 2,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
       });
-    }).catch(error=>{
-      console.log(error);
-    });
-  }
+  };
 
   //删除人员
   delMember = (record) => {
     let data = {
       id: record.ComMemID,
-      usertype: 'ComMem'
-    }
+      usertype: 'ComMem',
+    };
 
     axios({
       method: 'post',
       url: 'http://localhost:3000/delMember',
-      data: Qs.stringify(data)
-    }).then(response=>{
-      if(response.data!==''){
-        notification['error']({
-          message: '注意',
-          description: response.data,
-          duration: 2
-        });
-      }else{
-        notification['warning']({
-          message: '消息',
-          description:
-          <p>已删除人员&nbsp;{record.UserID}&nbsp;{record.UserName}</p>,
-        });
-      }
-      this.getData();
-    }).catch(error=>{
-      console.log(error);
-    }); 
+      data: Qs.stringify(data),
+    })
+      .then((response) => {
+        if (response.data !== '') {
+          notification['error']({
+            message: '注意',
+            description: response.data,
+            duration: 2,
+          });
+        } else {
+          notification['warning']({
+            message: '消息',
+            description: (
+              <p>
+                已删除人员&nbsp;{record.UserID}&nbsp;{record.UserName}
+              </p>
+            ),
+          });
+        }
+        this.getData();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   handleSave = (row) => {
@@ -300,54 +336,53 @@ export default class CommerceMember extends Component {
     });
   };
 
-  handleID = (e) =>{
+  handleID = (e) => {
     this.setState({
-      ComMemID: e.target.value
-    })
-  }
+      ComMemID: e.target.value,
+    });
+  };
 
-  handleName = (e) =>{
+  handleName = (e) => {
     this.setState({
-      ComMemName: e.target.value
-    })
-  }
+      ComMemName: e.target.value,
+    });
+  };
 
-  handleGender = (e) =>{
+  handleGender = (e) => {
     this.setState({
-      Gender: e
-    })
-  }
+      Gender: e,
+    });
+  };
 
-  handleDate = (date, dateString) =>{
+  handleDate = (date, dateString) => {
     this.setState({
-      BirthDate: dateString
-    })
-  }
+      BirthDate: dateString,
+    });
+  };
 
-  handleAddress = (e) =>{
+  handleAddress = (e) => {
     this.setState({
-      Address: e.target.value
-    })
-  }
+      Address: e.target.value,
+    });
+  };
 
-  handlePhone = (e) =>{
+  handlePhone = (e) => {
     this.setState({
-      Phone: e.target.value
-    })
-  }
+      Phone: e.target.value,
+    });
+  };
 
-  handleEmail = (e) =>{
+  handleEmail = (e) => {
     this.setState({
-      Email: e.target.value
-    })
-  }
+      Email: e.target.value,
+    });
+  };
 
-  handleNotes = (e) =>{
+  handleNotes = (e) => {
     this.setState({
-      Notes: e.target.value
-    })
-  }
-
+      Notes: e.target.value,
+    });
+  };
 
   showDrawer = () => {
     this.setState({
@@ -360,13 +395,13 @@ export default class CommerceMember extends Component {
       Email: '',
       Notes: '',
       visible: true,
-      DrawerTitle: '新增商务部人员'
+      DrawerTitle: '新增商务部人员',
     });
     setTimeout(() => {
-      this.formRef.current.resetFields()
+      this.formRef.current.resetFields();
       this.formRef.current.setFieldsValue({
-        BirthDate: ''
-      })
+        BirthDate: '',
+      });
     }, 200);
   };
 
@@ -380,89 +415,126 @@ export default class CommerceMember extends Component {
       Address: '',
       Phone: '',
       Email: '',
-      Notes: ''
+      Notes: '',
     });
   };
 
   onSubmit = async () => {
-    const { DrawerTitle, ComMemID, ComMemName, Gender, BirthDate, Address, Phone, Email, Notes } = this.state;
+    const {
+      DrawerTitle,
+      ComMemID,
+      ComMemName,
+      Gender,
+      BirthDate,
+      Address,
+      Phone,
+      Email,
+      Notes,
+    } = this.state;
 
-    if(ComMemID===''||ComMemName===''||Gender===''||BirthDate===''||Phone===''){
+    if (
+      ComMemID === '' ||
+      ComMemName === '' ||
+      Gender === '' ||
+      BirthDate === '' ||
+      Phone === ''
+    ) {
       notification['error']({
         message: '注意',
-        description:'有必填字段未填写!',
-        duration: 2
+        description: '有必填字段未填写!',
+        duration: 2,
       });
       return;
     }
 
     let data = {
-      ComMemID, ComMemName, Gender, BirthDate, Address, Phone, Email, Notes
-    }
+      ComMemID,
+      ComMemName,
+      Gender,
+      BirthDate,
+      Address,
+      Phone,
+      Email,
+      Notes,
+    };
 
-    if(DrawerTitle === '新增商务部人员'){
+    if (DrawerTitle === '新增商务部人员') {
       axios({
         method: 'post',
         url: 'http://localhost:3000/addComMem',
-        data: Qs.stringify(data)
-      }).then(response=>{
-        if(response.data!==''){
+        data: Qs.stringify(data),
+      })
+        .then((response) => {
+          if (response.data !== '') {
+            notification['error']({
+              message: '注意',
+              description: response.data,
+              duration: 2,
+            });
+          } else {
+            notification['success']({
+              message: '消息',
+              description: (
+                <div style={{ whiteSpace: 'pre-wrap' }}>
+                  已成功添加人员{ComMemID}
+                  <br />
+                  初始密码为123456
+                </div>
+              ),
+              duration: 2,
+            });
+          }
+          this.getData();
+        })
+        .catch((error) => {
+          console.log(error);
           notification['error']({
             message: '注意',
-            description: response.data,
-            duration: 2
+            description: '出错啦!!!',
+            duration: 2,
           });
-        }else{
-          notification['success']({
-            message: '消息',
-            description:<div style={{whiteSpace: 'pre-wrap'}}>已成功添加人员{ComMemID}<br/>初始密码为123456</div>,
-            duration: 2
-          });
-        }
-        this.getData();
-      }).catch(error=>{
-        console.log(error);
-        notification['error']({
-          message: '注意',
-          description: '出错啦!!!',
-          duration: 2
         });
-      });
-    }else if(DrawerTitle === '编辑人员信息'){
+    } else if (DrawerTitle === '编辑人员信息') {
       axios({
         method: 'post',
         url: 'http://localhost:3000/modComMem',
-        data: Qs.stringify(data)
-      }).then(response=>{
-        if(response.data!==''){
+        data: Qs.stringify(data),
+      })
+        .then((response) => {
+          if (response.data !== '') {
+            notification['error']({
+              message: '注意',
+              description: response.data,
+              duration: 2,
+            });
+          } else {
+            notification['success']({
+              message: '消息',
+              description: (
+                <div style={{ whiteSpace: 'pre-wrap' }}>
+                  已成功修改{ComMemID}人员信息
+                </div>
+              ),
+              duration: 2,
+            });
+          }
+          this.getData();
+        })
+        .catch((error) => {
+          console.log(error);
           notification['error']({
             message: '注意',
-            description: response.data,
-            duration: 2
+            description: '出错啦!!!',
+            duration: 2,
           });
-        }else{
-          notification['success']({
-            message: '消息',
-            description:<div style={{whiteSpace: 'pre-wrap'}}>已成功修改{ComMemID}人员信息</div>,
-            duration: 2
-          });
-        }
-        this.getData();
-      }).catch(error=>{
-        console.log(error);
-        notification['error']({
-          message: '注意',
-          description: '出错啦!!!',
-          duration: 2
         });
-      });
     }
     // setTimeout(() => {
     //   this.getData();
-    // }, 1000); 
+    // }, 1000);
     this.onClose();
   };
-  
+
   render() {
     const { dataSource } = this.state;
     const components = {
@@ -495,31 +567,59 @@ export default class CommerceMember extends Component {
           <Breadcrumb.Item>商务部人员管理</Breadcrumb.Item>
         </Breadcrumb>
         <div className="site-layout-background" style={{ padding: 10 }}>
-          <Button type="primary" onClick={this.showDrawer} icon={<PlusOutlined />} style={{marginBottom: 16}}>
+          <Button
+            type="primary"
+            onClick={this.showDrawer}
+            icon={<PlusOutlined />}
+            style={{ marginBottom: 16 }}
+          >
             新增人员
           </Button>
           <Table
-            size='small'
+            size="small"
             components={components}
             rowClassName={() => 'editable-row'}
             bordered
             dataSource={dataSource}
             columns={columns}
             pagination={{ pageSize: 10 }}
-            onRow={record => {
+            onRow={(record) => {
               return {
-                onDoubleClick: event => {
-                  const { ComMemID, ComMemName, Gender, BirthDate, Address, Phone, Email, Notes } = record
+                onDoubleClick: (event) => {
+                  const {
+                    ComMemID,
+                    ComMemName,
+                    Gender,
+                    BirthDate,
+                    Address,
+                    Phone,
+                    Email,
+                    Notes,
+                  } = record;
                   this.setState({
-                    ComMemID, ComMemName, Gender, BirthDate, Address, Phone, Email, Notes,
+                    ComMemID,
+                    ComMemName,
+                    Gender,
+                    BirthDate,
+                    Address,
+                    Phone,
+                    Email,
+                    Notes,
                     DrawerTitle: '编辑人员信息',
-                    visible: true
+                    visible: true,
                   });
                   setTimeout(() => {
                     this.formRef.current.setFieldsValue({
-                      ComMemID, ComMemName, Gender, BirthDate:moment(BirthDate), Address, Phone, Email, Notes
-                    })
-                  }, 100); 
+                      ComMemID,
+                      ComMemName,
+                      Gender,
+                      BirthDate: moment(BirthDate),
+                      Address,
+                      Phone,
+                      Email,
+                      Notes,
+                    });
+                  }, 100);
                 },
               };
             }}
@@ -569,7 +669,11 @@ export default class CommerceMember extends Component {
                   label="性别"
                   rules={[{ required: true, message: '请选择性别' }]}
                 >
-                  <Select value={this.state.Gender} onChange={this.handleGender} placeholder="请选择性别">
+                  <Select
+                    value={this.state.Gender}
+                    onChange={this.handleGender}
+                    placeholder="请选择性别"
+                  >
                     <Option value="0">男</Option>
                     <Option value="1">女</Option>
                   </Select>
@@ -581,20 +685,24 @@ export default class CommerceMember extends Component {
                   label="出生日期"
                   rules={[{ required: true, message: '请选择出生日期' }]}
                 >
-                  <DatePicker style={{ width: '100%' }} 
-                  onChange={this.handleDate} 
-                  disabledDate={(current)=>{return current && current > moment().endOf("day")}} 
+                  <DatePicker
+                    style={{ width: '100%' }}
+                    onChange={this.handleDate}
+                    disabledDate={(current) => {
+                      return current && current > moment().endOf('day');
+                    }}
                   />
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item
-                  name="Address"
-                  label="详细住址"
-                >
-                  <Input.TextArea rows={3} onChange={this.handleAddress} placeholder="请输入详细住址" />
+                <Form.Item name="Address" label="详细住址">
+                  <Input.TextArea
+                    rows={3}
+                    onChange={this.handleAddress}
+                    placeholder="请输入详细住址"
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -605,31 +713,35 @@ export default class CommerceMember extends Component {
                   label="联系电话"
                   rules={[{ required: true, message: '请输入联系电话' }]}
                 >
-                  <Input onChange={this.handlePhone} placeholder="请输入联系电话" />
+                  <Input
+                    onChange={this.handlePhone}
+                    placeholder="请输入联系电话"
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item
-                  name="Email"
-                  label="邮箱地址"
-                >
-                  <Input onChange={this.handleEmail} placeholder="请输入邮箱地址" />
+                <Form.Item name="Email" label="邮箱地址">
+                  <Input
+                    onChange={this.handleEmail}
+                    placeholder="请输入邮箱地址"
+                  />
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item
-                  name="Notes"
-                  label="备注"
-                >
-                  <Input.TextArea rows={4} onChange={this.handleNotes} placeholder="请输入备注" />
+                <Form.Item name="Notes" label="备注">
+                  <Input.TextArea
+                    rows={4}
+                    onChange={this.handleNotes}
+                    placeholder="请输入备注"
+                  />
                 </Form.Item>
               </Col>
             </Row>
           </Form>
         </Drawer>
       </div>
-    )
+    );
   }
 }

@@ -1,11 +1,11 @@
-import React, { Component } from 'react'
-import Login from './pages/Login'
-import Pawnshop from './pages/pawnshop'
-import Commerce from './pages/commerce'
-import Administrators from './pages/administrators'
-import Experts from './pages/experts'
-import Users from './pages/users'
-import './App.less'
+import React, { Component } from 'react';
+import Login from './pages/Login';
+import Pawnshop from './pages/pawnshop';
+import Commerce from './pages/commerce';
+import Administrators from './pages/administrators';
+import Experts from './pages/experts';
+import Users from './pages/users';
+import './App.less';
 import { Routes, Route } from 'react-router-dom';
 
 //全局配置中文

@@ -1,8 +1,28 @@
-import React, { Component, useContext, useState, useEffect, useRef } from 'react'
-import { Breadcrumb, Table, Input, Button, Popconfirm, Form, Drawer, Col, Row, Select, Space, Tooltip, notification } from 'antd'
-import axios from 'axios'
-import store from '../../../../redux/store'
-import '../../../../style/common.less'
+import React, {
+  Component,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
+import {
+  Breadcrumb,
+  Table,
+  Input,
+  Button,
+  Popconfirm,
+  Form,
+  Drawer,
+  Col,
+  Row,
+  Select,
+  Space,
+  Tooltip,
+  notification,
+} from 'antd';
+import axios from 'axios';
+import store from '../../../../redux/store';
+import '../../../../style/common.less';
 //import 'antd/dist/antd.css';
 import { PlusOutlined, SmileOutlined } from '@ant-design/icons';
 
@@ -90,11 +110,10 @@ const EditableCell = ({
   return <td {...restProps}>{childNode}</td>;
 };
 
-
 export default class ManageStorehouse extends Component {
   constructor(props) {
     super(props);
-    //SHID,Address,Area,CanBulkObj,CanVehicle,Sedan,Motorbike,IsFull,PSstaffID,Notes)VALUES 
+    //SHID,Address,Area,CanBulkObj,CanVehicle,Sedan,Motorbike,IsFull,PSstaffID,Notes)VALUES
 
     this.columns = [
       {
@@ -102,7 +121,7 @@ export default class ManageStorehouse extends Component {
         dataIndex: 'SHID',
         key: 'SHID',
         editable: false,
-        width: '10%'
+        width: '10%',
       },
       {
         title: '地址',
@@ -111,7 +130,7 @@ export default class ManageStorehouse extends Component {
         ellipsis: {
           showTitle: false,
         },
-        render: Address => (
+        render: (Address) => (
           <Tooltip placement="topLeft" title={Address}>
             {Address}
           </Tooltip>
@@ -121,13 +140,13 @@ export default class ManageStorehouse extends Component {
         title: '面积',
         dataIndex: 'Area',
         key: 'Area',
-        width: '15%'
+        width: '15%',
       },
       {
         title: '仓库管理人',
         dataIndex: 'PSstaffID',
         key: 'PSstaffID',
-        width: '15%'
+        width: '15%',
       },
       {
         title: '操作',
@@ -135,7 +154,10 @@ export default class ManageStorehouse extends Component {
         width: '10%',
         render: (_, record) =>
           this.state.dataSource.length >= 1 ? (
-            <Popconfirm title="Sure to delete?" onConfirm={() => this.handleDelete(record.key)}>
+            <Popconfirm
+              title="Sure to delete?"
+              onConfirm={() => this.handleDelete(record.key)}
+            >
               <a>删除</a>
             </Popconfirm>
           ) : null,
@@ -143,7 +165,7 @@ export default class ManageStorehouse extends Component {
     ];
 
     this.state = {
-      visible: false ,
+      visible: false,
       DrawerTitle: '新增仓库',
       dataSource: [],
       count: 0,
@@ -157,42 +179,45 @@ export default class ManageStorehouse extends Component {
       Motorbike: '',
       IsFull: '',
       PSstaffID: '',
-      Notes: ''
+      Notes: '',
     };
   }
 
-  componentDidMount(){
-    this.getData()
+  componentDidMount() {
+    this.getData();
   }
 
   getData = async () => {
-    let dataSource = []
-    await axios.get('/getStorehouse',{
-      params:{
-        id: store.getState().PSID,
-      }
-    }).then(response=>{
-        if(response.data.length === 0){
-          console.log('无数据')
-        }else{
-          dataSource = response.data
+    let dataSource = [];
+    await axios
+      .get('/getStorehouse', {
+        params: {
+          id: store.getState().PSID,
+        },
+      })
+      .then((response) => {
+        if (response.data.length === 0) {
+          console.log('无数据');
+        } else {
+          dataSource = response.data;
         }
-    }).catch(error=>{
+      })
+      .catch((error) => {
         console.log(error);
-    });
+      });
 
-    dataSource = dataSource.map((obj,index) => {
+    dataSource = dataSource.map((obj, index) => {
       return {
         ...obj,
-        key: index
+        key: index,
       };
     });
 
     this.setState({
       dataSource,
-      count: dataSource.length
-    })
-  }
+      count: dataSource.length,
+    });
+  };
 
   handleDelete = (key) => {
     const dataSource = [...this.state.dataSource];
@@ -210,59 +235,58 @@ export default class ManageStorehouse extends Component {
     });
   };
 
-  handleID = (e) =>{
+  handleID = (e) => {
     this.setState({
-      ComMemID: e.target.value
-    })
-  }
+      ComMemID: e.target.value,
+    });
+  };
 
-  handleName = (e) =>{
+  handleName = (e) => {
     this.setState({
-      ComMemName: e.target.value
-    })
-  }
+      ComMemName: e.target.value,
+    });
+  };
 
-  handleGender = (e) =>{
+  handleGender = (e) => {
     this.setState({
-      Gender: e
-    })
-  }
+      Gender: e,
+    });
+  };
 
-  handleDate = (date, dateString) =>{
+  handleDate = (date, dateString) => {
     this.setState({
-      BirthDate: dateString
-    })
-  }
+      BirthDate: dateString,
+    });
+  };
 
-  handleAddress = (e) =>{
+  handleAddress = (e) => {
     this.setState({
-      Address: e.target.value
-    })
-  }
+      Address: e.target.value,
+    });
+  };
 
-  handlePhone = (e) =>{
+  handlePhone = (e) => {
     this.setState({
-      Phone: e.target.value
-    })
-  }
+      Phone: e.target.value,
+    });
+  };
 
-  handleEmail = (e) =>{
+  handleEmail = (e) => {
     this.setState({
-      Email: e.target.value
-    })
-  }
+      Email: e.target.value,
+    });
+  };
 
-  handleNotes = (e) =>{
+  handleNotes = (e) => {
     this.setState({
-      Notes: e.target.value
-    })
-  }
-
+      Notes: e.target.value,
+    });
+  };
 
   showDrawer = () => {
     this.setState({
       visible: true,
-      DrawerTitle: '新增仓库'
+      DrawerTitle: '新增仓库',
     });
   };
 
@@ -276,44 +300,65 @@ export default class ManageStorehouse extends Component {
       Address: '',
       Phone: '',
       Email: '',
-      Notes: ''
+      Notes: '',
     });
   };
 
   onSubmit = async () => {
-    console.log(this.state)
+    console.log(this.state);
 
-    await axios.get('/addComMem',{
-      params:{
-        ComMemID: this.state.ComMemID,
-        ComMemName: this.state.ComMemName,
-        Gender: this.state.Gender,
-        BirthDate: this.state.BirthDate,
-        Address: this.state.Address,
-        Phone: this.state.Phone,
-        Email: this.state.Email,
-        Notes: this.state.Notes
-      }
-    }).then(response=>{
-      console.log(response);
-    }).catch(error=>{
+    await axios
+      .get('/addComMem', {
+        params: {
+          ComMemID: this.state.ComMemID,
+          ComMemName: this.state.ComMemName,
+          Gender: this.state.Gender,
+          BirthDate: this.state.BirthDate,
+          Address: this.state.Address,
+          Phone: this.state.Phone,
+          Email: this.state.Email,
+          Notes: this.state.Notes,
+        },
+      })
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
         console.log(error);
-    });
+      });
 
-    this.getData()
+    this.getData();
 
     notification.open({
       message: 'Notification',
-      description:
-        <div style={{whiteSpace: 'pre-wrap'}}>已成功添加人员<br/>初始密码为123456</div>,
-      icon: <SmileOutlined style={{color:'orange'}}/>,
-      duration: 2
+      description: (
+        <div style={{ whiteSpace: 'pre-wrap' }}>
+          已成功添加人员
+          <br />
+          初始密码为123456
+        </div>
+      ),
+      icon: <SmileOutlined style={{ color: 'orange' }} />,
+      duration: 2,
     });
     this.onClose();
   };
 
   render() {
-    const { dataSource,DrawerTitle,SHID,Address,Area,CanBulkObj,CanVehicle,Sedan,Motorbike,IsFull,PSstaffID,Notes } = this.state;
+    const {
+      dataSource,
+      DrawerTitle,
+      SHID,
+      Address,
+      Area,
+      CanBulkObj,
+      CanVehicle,
+      Sedan,
+      Motorbike,
+      IsFull,
+      PSstaffID,
+      Notes,
+    } = this.state;
     const components = {
       body: {
         row: EditableRow,
@@ -344,7 +389,12 @@ export default class ManageStorehouse extends Component {
           <Breadcrumb.Item>仓库信息管理</Breadcrumb.Item>
         </Breadcrumb>
         <div className="site-layout-background" style={{ padding: 10 }}>
-          <Button type="primary" onClick={this.showDrawer} icon={<PlusOutlined />} style={{marginBottom: 16}}>
+          <Button
+            type="primary"
+            onClick={this.showDrawer}
+            icon={<PlusOutlined />}
+            style={{ marginBottom: 16 }}
+          >
             新增仓库
           </Button>
           <Table
@@ -354,14 +404,36 @@ export default class ManageStorehouse extends Component {
             dataSource={dataSource}
             columns={columns}
             pagination={{ pageSize: 5 }}
-            onRow={record => {
+            onRow={(record) => {
               return {
-                onDoubleClick: event => {
-                  const { SHID,PSID,Address,Area,CanBulkObj,CanVehicle,Sedan,Motorbike,IsFull,PSstaffID,Notes } = record
+                onDoubleClick: (event) => {
+                  const {
+                    SHID,
+                    PSID,
+                    Address,
+                    Area,
+                    CanBulkObj,
+                    CanVehicle,
+                    Sedan,
+                    Motorbike,
+                    IsFull,
+                    PSstaffID,
+                    Notes,
+                  } = record;
                   this.setState({
-                    SHID,PSID,Address,Area,CanBulkObj,CanVehicle,Sedan,Motorbike,IsFull,PSstaffID,Notes,
+                    SHID,
+                    PSID,
+                    Address,
+                    Area,
+                    CanBulkObj,
+                    CanVehicle,
+                    Sedan,
+                    Motorbike,
+                    IsFull,
+                    PSstaffID,
+                    Notes,
                     DrawerTitle: '编辑仓库信息',
-                    visible: true
+                    visible: true,
                   });
                 },
               };
@@ -383,8 +455,22 @@ export default class ManageStorehouse extends Component {
             </Space>
           }
         >
-          <Form layout="vertical" ref={this.formRef} hideRequiredMark
-          initialValues={{SHID,Address,Area,CanBulkObj,CanVehicle,Sedan,Motorbike,IsFull,PSstaffID,Notes}}
+          <Form
+            layout="vertical"
+            ref={this.formRef}
+            hideRequiredMark
+            initialValues={{
+              SHID,
+              Address,
+              Area,
+              CanBulkObj,
+              CanVehicle,
+              Sedan,
+              Motorbike,
+              IsFull,
+              PSstaffID,
+              Notes,
+            }}
           >
             <Row gutter={16}>
               <Col span={12}>
@@ -393,7 +479,10 @@ export default class ManageStorehouse extends Component {
                   label="仓库编号"
                   rules={[{ required: true, message: '请输入仓库编号' }]}
                 >
-                  <Input placeholder="请输入仓库编号" onChange={this.handleSHID} />
+                  <Input
+                    placeholder="请输入仓库编号"
+                    onChange={this.handleSHID}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -402,7 +491,11 @@ export default class ManageStorehouse extends Component {
                   label="面积"
                   rules={[{ required: true, message: '请输入面积' }]}
                 >
-                  <Input value={Area} placeholder="请输入面积" onChange={this.handleArea} />
+                  <Input
+                    value={Area}
+                    placeholder="请输入面积"
+                    onChange={this.handleArea}
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -413,7 +506,12 @@ export default class ManageStorehouse extends Component {
                   label="详细地址"
                   rules={[{ required: true, message: '请输入详细地址' }]}
                 >
-                  <Input.TextArea rows={3} value={Address} onChange={this.handleAddress} placeholder="请输入详细地址" />
+                  <Input.TextArea
+                    rows={3}
+                    value={Address}
+                    onChange={this.handleAddress}
+                    placeholder="请输入详细地址"
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -422,9 +520,15 @@ export default class ManageStorehouse extends Component {
                 <Form.Item
                   name="CanBulkObj"
                   label="大宗物件存放"
-                  rules={[{ required: true, message: '请选择是否可存放大宗物件' }]}
+                  rules={[
+                    { required: true, message: '请选择是否可存放大宗物件' },
+                  ]}
                 >
-                  <Select value={CanBulkObj} onChange={this.handleCanBulkObj} placeholder="请选择是否可放置大宗物件">
+                  <Select
+                    value={CanBulkObj}
+                    onChange={this.handleCanBulkObj}
+                    placeholder="请选择是否可放置大宗物件"
+                  >
                     <Option value="1">是</Option>
                     <Option value="0">否</Option>
                   </Select>
@@ -436,10 +540,14 @@ export default class ManageStorehouse extends Component {
                   label="车辆存放"
                   rules={[{ required: true, message: '请选择是否可存放车辆' }]}
                 >
-                  <Select value={CanBulkObj} onChange={this.handleCanBulkObj} placeholder="请选择是否可放置大宗物件">
+                  <Select
+                    value={CanBulkObj}
+                    onChange={this.handleCanBulkObj}
+                    placeholder="请选择是否可放置大宗物件"
+                  >
                     <Option value="1">是</Option>
                     <Option value="0">否</Option>
-                  </Select>                
+                  </Select>
                 </Form.Item>
               </Col>
             </Row>
@@ -448,18 +556,30 @@ export default class ManageStorehouse extends Component {
                 <Form.Item
                   name="Sedan"
                   label="小轿车"
-                  rules={[{ required: true, message: '请输入小轿车可存放数量' }]}
+                  rules={[
+                    { required: true, message: '请输入小轿车可存放数量' },
+                  ]}
                 >
-                  <Input value={Sedan} placeholder="请输入小轿车可存放数量" onChange={this.handleSedan} />
+                  <Input
+                    value={Sedan}
+                    placeholder="请输入小轿车可存放数量"
+                    onChange={this.handleSedan}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
                   name="Motorbike"
                   label="摩托车"
-                  rules={[{ required: true, message: '请输入摩托车可存放数量' }]}
+                  rules={[
+                    { required: true, message: '请输入摩托车可存放数量' },
+                  ]}
                 >
-                  <Input value={Motorbike} placeholder="请输入摩托车可存放数量" onChange={this.handleMotorbike} />
+                  <Input
+                    value={Motorbike}
+                    placeholder="请输入摩托车可存放数量"
+                    onChange={this.handleMotorbike}
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -470,7 +590,11 @@ export default class ManageStorehouse extends Component {
                   label="满仓"
                   rules={[{ required: true, message: '请选择是否已满仓' }]}
                 >
-                  <Select value={IsFull} onChange={this.handleIsFull} placeholder="请选择是否已满仓">
+                  <Select
+                    value={IsFull}
+                    onChange={this.handleIsFull}
+                    placeholder="请选择是否已满仓"
+                  >
                     <Option value="1">是</Option>
                     <Option value="0">否</Option>
                   </Select>
@@ -482,7 +606,11 @@ export default class ManageStorehouse extends Component {
                   label="仓库管理人"
                   rules={[{ required: true, message: '请选择仓库管理人' }]}
                 >
-                  <Input value={PSstaffID} placeholder="请选择仓库管理人" onChange={this.handlePSstaffID} />              
+                  <Input
+                    value={PSstaffID}
+                    placeholder="请选择仓库管理人"
+                    onChange={this.handlePSstaffID}
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -491,15 +619,20 @@ export default class ManageStorehouse extends Component {
                 <Form.Item
                   name="Notes"
                   label="备注"
-                  rules={[{required: true,message: '请输入备注'},]}
+                  rules={[{ required: true, message: '请输入备注' }]}
                 >
-                  <Input.TextArea rows={3} value={Notes} onChange={this.handleNotes} placeholder="请输入备注" />
+                  <Input.TextArea
+                    rows={3}
+                    value={Notes}
+                    onChange={this.handleNotes}
+                    placeholder="请输入备注"
+                  />
                 </Form.Item>
               </Col>
             </Row>
           </Form>
         </Drawer>
       </div>
-    )
+    );
   }
 }

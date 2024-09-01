@@ -1,12 +1,33 @@
-import React, { Component, useContext, useState, useEffect, useRef } from 'react'
-import { Breadcrumb, Table, Input, Button, Popconfirm, Form, Drawer, Col, Row, Select, DatePicker, Space, Tooltip, notification } from 'antd'
-import moment from 'moment'
-import axios from 'axios'
-import Qs from 'qs'
-import store from '../../../../redux/store'
-import '../../../../style/common.less'
+import React, {
+  Component,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
+import {
+  Breadcrumb,
+  Table,
+  Input,
+  Button,
+  Popconfirm,
+  Form,
+  Drawer,
+  Col,
+  Row,
+  Select,
+  DatePicker,
+  Space,
+  Tooltip,
+  notification,
+} from 'antd';
+import moment from 'moment';
+import axios from 'axios';
+import Qs from 'qs';
+import store from '../../../../redux/store';
+import '../../../../style/common.less';
 //import 'antd/dist/antd.css';
-import { SmileOutlined,WarningOutlined } from '@ant-design/icons';
+import { SmileOutlined, WarningOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -92,7 +113,6 @@ const EditableCell = ({
   return <td {...restProps}>{childNode}</td>;
 };
 
-
 export default class InfoChangeAudit extends Component {
   constructor(props) {
     super(props);
@@ -105,14 +125,20 @@ export default class InfoChangeAudit extends Component {
         render: (_, record) =>
           this.state.dataSource.length >= 1 ? (
             <div>
-              <Popconfirm title="确认通过审核?" onConfirm={() => this.handlePass(record)}>
+              <Popconfirm
+                title="确认通过审核?"
+                onConfirm={() => this.handlePass(record)}
+              >
                 <a>通过</a>
               </Popconfirm>
               &nbsp;&nbsp;&nbsp;&nbsp;
-              <Popconfirm title="确认不通过审核?" onConfirm={() => this.handleNotPass(record)}>
+              <Popconfirm
+                title="确认不通过审核?"
+                onConfirm={() => this.handleNotPass(record)}
+              >
                 <a>不通过</a>
               </Popconfirm>
-            </div>     
+            </div>
           ) : null,
       },
       {
@@ -120,24 +146,24 @@ export default class InfoChangeAudit extends Component {
         dataIndex: 'PSID',
         key: 'PSID',
         editable: false,
-        width: '100px'
+        width: '100px',
       },
       {
         title: '当行名称',
         dataIndex: 'PSName',
-        key: 'PSName'
+        key: 'PSName',
       },
       {
         title: '注册资本',
         dataIndex: 'RegCapital',
         key: 'RegCapital',
-        width: '120px'
+        width: '120px',
       },
       {
         title: '成立时间',
         dataIndex: 'FoundDate',
         key: 'FoundDate',
-        width: '120px'
+        width: '120px',
       },
       {
         title: '地址',
@@ -146,7 +172,7 @@ export default class InfoChangeAudit extends Component {
         ellipsis: {
           showTitle: false,
         },
-        render: Address => (
+        render: (Address) => (
           <Tooltip placement="topLeft" title={Address}>
             {Address}
           </Tooltip>
@@ -156,18 +182,18 @@ export default class InfoChangeAudit extends Component {
         title: '联系电话',
         dataIndex: 'Phone',
         key: 'Phone',
-        width: '130px'
+        width: '130px',
       },
       {
         title: '法定代表人',
         dataIndex: 'PSstaffName',
         key: 'PSstaffName',
-        width: '120px'
-      }
+        width: '120px',
+      },
     ];
 
     this.state = {
-      visible: false ,
+      visible: false,
       dataSource: [],
       count: 0,
       PSID: '',
@@ -190,51 +216,56 @@ export default class InfoChangeAudit extends Component {
       IsBranch: '',
       HeadOfficeID: '',
       AuditState: '',
-      ComMemID: ''
+      ComMemID: '',
     };
   }
 
-  formRef = React.createRef()
+  formRef = React.createRef();
 
-  componentDidMount(){
-    this.getData()
+  componentDidMount() {
+    this.getData();
   }
 
   getData = async () => {
-    let dataSource = []
-    await axios.get('/getPawnshop',{
-      params:{
-        InfoChange: 1
-      }
-    }).then(response=>{
-        if(response.data.length === 0){
-          console.log('无数据')
-        }else{
-          dataSource = response.data
+    let dataSource = [];
+    await axios
+      .get('/getPawnshop', {
+        params: {
+          InfoChange: 1,
+        },
+      })
+      .then((response) => {
+        if (response.data.length === 0) {
+          console.log('无数据');
+        } else {
+          dataSource = response.data;
         }
-    }).catch(error=>{
+      })
+      .catch((error) => {
         console.log(error);
-    });
+      });
 
-    dataSource = dataSource?dataSource.map((obj,index) => {
-      return {
-        ...obj,
-        key: index
-      };
-    }):[];
+    dataSource = dataSource
+      ? dataSource.map((obj, index) => {
+          return {
+            ...obj,
+            key: index,
+          };
+        })
+      : [];
 
     this.setState({
       dataSource,
-      count: dataSource.length
-    })
-  }
+      count: dataSource.length,
+    });
+  };
 
   handlePass = async (record) => {
     const dataSource = [...this.state.dataSource];
     //const {PSID}=dataSource.find((item) => item.key == key)
-    const {PSID} = record;
-    const {ComMemID} = store.getState()
-    
+    const { PSID } = record;
+    const { ComMemID } = store.getState();
+
     // await axios.post('http://localhost:3000/modPawnshop',{
     //   id: PSID,
     //   InfoChange: 0
@@ -249,24 +280,29 @@ export default class InfoChangeAudit extends Component {
       ComMemID,
       InfoChange: 0,
       AuditState: 1,
-      operation: 'InfoChangeAudit'
-    }
+      operation: 'InfoChangeAudit',
+    };
 
     axios({
       method: 'post',
       url: 'http://localhost:3000/modPawnshop',
-      data: Qs.stringify(data)
-    }).then(response=>{
-      notification.open({
-        message: 'Notification',
-        description:
-          <div style={{whiteSpace: 'pre-wrap'}}>{PSID}典当行信息变更已通过</div>,
-        icon: <SmileOutlined style={{color:'orange'}}/>,
-        duration: 2
+      data: Qs.stringify(data),
+    })
+      .then((response) => {
+        notification.open({
+          message: 'Notification',
+          description: (
+            <div style={{ whiteSpace: 'pre-wrap' }}>
+              {PSID}典当行信息变更已通过
+            </div>
+          ),
+          icon: <SmileOutlined style={{ color: 'orange' }} />,
+          duration: 2,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
       });
-    }).catch(error=>{
-      console.log(error);
-    });
 
     // axios({
     // 	// headers: {
@@ -278,38 +314,45 @@ export default class InfoChangeAudit extends Component {
     // })
 
     this.setState({
-      dataSource: dataSource.filter((item) => item.key !== record.key)
+      dataSource: dataSource.filter((item) => item.key !== record.key),
     });
   };
 
   handleNotPass = (record) => {
     const dataSource = [...this.state.dataSource];
-    const {PSID} = record;
-    const {ComMemID} = store.getState()
+    const { PSID } = record;
+    const { ComMemID } = store.getState();
 
     let data = {
       PSID,
       ComMemID,
       InfoChange: 0,
       AuditState: 2,
-      operation: 'InfoChangeAudit'
-    }
+      operation: 'InfoChangeAudit',
+    };
 
     axios({
       method: 'post',
       url: 'http://localhost:3000/modPawnshop',
-      data: Qs.stringify(data)
-    }).then(response=>{
-      notification.open({
-        message: 'Notification',
-        description:
-        <div style={{whiteSpace: 'pre-wrap'}}>{PSID}典当行信息变更未通过<br/>已暂时关闭其使用权限</div>,
-        icon: <WarningOutlined style={{color:'orange'}}/>,
-        duration: 2
+      data: Qs.stringify(data),
+    })
+      .then((response) => {
+        notification.open({
+          message: 'Notification',
+          description: (
+            <div style={{ whiteSpace: 'pre-wrap' }}>
+              {PSID}典当行信息变更未通过
+              <br />
+              已暂时关闭其使用权限
+            </div>
+          ),
+          icon: <WarningOutlined style={{ color: 'orange' }} />,
+          duration: 2,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
       });
-    }).catch(error=>{
-      console.log(error);
-    });
 
     this.setState({
       dataSource: dataSource.filter((item) => item.key !== record.key),
@@ -328,7 +371,7 @@ export default class InfoChangeAudit extends Component {
 
   showDrawer = () => {
     this.setState({
-      visible: true
+      visible: true,
     });
   };
 
@@ -339,7 +382,30 @@ export default class InfoChangeAudit extends Component {
   };
 
   render() {
-    const { dataSource,PSID,PSName,Address,PSstaffName,Identification,RegCapital,FoundDate,BusinessTerm,Representative,PermitCode,PermitAuthority,PermitDate,BLicenseAuthority,SocCreCode,Phone,Zip,Description,IsBranch,HeadOfficeID,AuditState,ComMemID } = this.state;
+    const {
+      dataSource,
+      PSID,
+      PSName,
+      Address,
+      PSstaffName,
+      Identification,
+      RegCapital,
+      FoundDate,
+      BusinessTerm,
+      Representative,
+      PermitCode,
+      PermitAuthority,
+      PermitDate,
+      BLicenseAuthority,
+      SocCreCode,
+      Phone,
+      Zip,
+      Description,
+      IsBranch,
+      HeadOfficeID,
+      AuditState,
+      ComMemID,
+    } = this.state;
     const components = {
       body: {
         row: EditableRow,
@@ -371,26 +437,88 @@ export default class InfoChangeAudit extends Component {
         </Breadcrumb>
         <div className="site-layout-background" style={{ padding: 10 }}>
           <Table
-            size='small'
+            size="small"
             components={components}
             rowClassName={() => 'editable-row'}
             bordered
             dataSource={dataSource}
             columns={columns}
             pagination={{ pageSize: 10 }}
-            onRow={record => {
+            onRow={(record) => {
               return {
-                onDoubleClick: event => {
-                  const { PSID,PSName,Address,RegCapital,FoundDate,BusinessTerm,Representative,PSstaffName,Identification,PermitCode,PermitAuthority,PermitDate,BLicenseAuthority,SocCreCode,Phone,Zip,Description,IsBranch,HeadOfficeID,AuditState,ComMemID } = record
+                onDoubleClick: (event) => {
+                  const {
+                    PSID,
+                    PSName,
+                    Address,
+                    RegCapital,
+                    FoundDate,
+                    BusinessTerm,
+                    Representative,
+                    PSstaffName,
+                    Identification,
+                    PermitCode,
+                    PermitAuthority,
+                    PermitDate,
+                    BLicenseAuthority,
+                    SocCreCode,
+                    Phone,
+                    Zip,
+                    Description,
+                    IsBranch,
+                    HeadOfficeID,
+                    AuditState,
+                    ComMemID,
+                  } = record;
                   this.setState({
-                    PSID,PSName,Address,RegCapital,FoundDate,BusinessTerm,Representative,PSstaffName,Identification,PermitCode,PermitAuthority,PermitDate,BLicenseAuthority,SocCreCode,Phone,Zip,Description,IsBranch,HeadOfficeID,AuditState,ComMemID,
-                    visible: true
+                    PSID,
+                    PSName,
+                    Address,
+                    RegCapital,
+                    FoundDate,
+                    BusinessTerm,
+                    Representative,
+                    PSstaffName,
+                    Identification,
+                    PermitCode,
+                    PermitAuthority,
+                    PermitDate,
+                    BLicenseAuthority,
+                    SocCreCode,
+                    Phone,
+                    Zip,
+                    Description,
+                    IsBranch,
+                    HeadOfficeID,
+                    AuditState,
+                    ComMemID,
+                    visible: true,
                   });
                   setTimeout(() => {
                     this.formRef.current.setFieldsValue({
-                      PSID,PSName,Address,RegCapital,FoundDate:moment(FoundDate),BusinessTerm,Representative,PSstaffName,Identification,PermitCode,PermitAuthority,PermitDate:moment(PermitDate),BLicenseAuthority,SocCreCode,Phone,Zip,Description,IsBranch,HeadOfficeID,AuditState,ComMemID
-                    })
-                  }, 100); 
+                      PSID,
+                      PSName,
+                      Address,
+                      RegCapital,
+                      FoundDate: moment(FoundDate),
+                      BusinessTerm,
+                      Representative,
+                      PSstaffName,
+                      Identification,
+                      PermitCode,
+                      PermitAuthority,
+                      PermitDate: moment(PermitDate),
+                      BLicenseAuthority,
+                      SocCreCode,
+                      Phone,
+                      Zip,
+                      Description,
+                      IsBranch,
+                      HeadOfficeID,
+                      AuditState,
+                      ComMemID,
+                    });
+                  }, 100);
                 },
               };
             }}
@@ -404,8 +532,31 @@ export default class InfoChangeAudit extends Component {
           visible={this.state.visible}
           bodyStyle={{ paddingBottom: 80 }}
         >
-          <Form layout="vertical" ref={this.formRef} hideRequiredMark
-          initialValues={{PSID,PSName,Address,RegCapital,FoundDate:moment(FoundDate),BusinessTerm,Representative,PSstaffName,Identification,PermitCode,PermitAuthority,PermitDate:moment(PermitDate),BLicenseAuthority,SocCreCode,Phone,Zip,Description,IsBranch,HeadOfficeID}}
+          <Form
+            layout="vertical"
+            ref={this.formRef}
+            hideRequiredMark
+            initialValues={{
+              PSID,
+              PSName,
+              Address,
+              RegCapital,
+              FoundDate: moment(FoundDate),
+              BusinessTerm,
+              Representative,
+              PSstaffName,
+              Identification,
+              PermitCode,
+              PermitAuthority,
+              PermitDate: moment(PermitDate),
+              BLicenseAuthority,
+              SocCreCode,
+              Phone,
+              Zip,
+              Description,
+              IsBranch,
+              HeadOfficeID,
+            }}
           >
             <Row gutter={16}>
               <Col span={12}>
@@ -434,7 +585,11 @@ export default class InfoChangeAudit extends Component {
                   label="详细地址"
                   rules={[{ required: true, message: '请输入详细地址' }]}
                 >
-                  <Input.TextArea rows={3} value={this.state.Address} disabled />
+                  <Input.TextArea
+                    rows={3}
+                    value={this.state.Address}
+                    disabled
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -512,7 +667,9 @@ export default class InfoChangeAudit extends Component {
                 <Form.Item
                   name="SocCreCode"
                   label="统一社会信用代码"
-                  rules={[{ required: true, message: '请输入统一社会信用代码' }]}
+                  rules={[
+                    { required: true, message: '请输入统一社会信用代码' },
+                  ]}
                 >
                   <Input disabled />
                 </Form.Item>
@@ -561,12 +718,14 @@ export default class InfoChangeAudit extends Component {
                 <Form.Item
                   name="BLicenseAuthority"
                   label="营业执照登记机关"
-                  rules={[{ required: true, message: '请输入营业执照登记机关' }]}
+                  rules={[
+                    { required: true, message: '请输入营业执照登记机关' },
+                  ]}
                 >
                   <Input disabled />
                 </Form.Item>
               </Col>
-            </Row>  
+            </Row>
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
@@ -589,10 +748,7 @@ export default class InfoChangeAudit extends Component {
             </Row>
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item
-                  name="Description"
-                  label="简介"
-                >
+                <Form.Item name="Description" label="简介">
                   <Input.TextArea rows={4} disabled />
                 </Form.Item>
               </Col>
@@ -600,6 +756,6 @@ export default class InfoChangeAudit extends Component {
           </Form>
         </Drawer>
       </div>
-    )
+    );
   }
 }

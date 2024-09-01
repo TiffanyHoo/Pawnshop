@@ -1,8 +1,30 @@
-import React, { Component, useContext, useState, useEffect, useRef } from 'react'
-import { Breadcrumb, Table, Input, Button, Popconfirm, Form, Drawer, Col, Row, Select, DatePicker, Space, Tooltip, notification, Switch } from 'antd'
-import axios from 'axios'
-import Qs from 'qs'
-import '../../../../style/common.less'
+import React, {
+  Component,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
+import {
+  Breadcrumb,
+  Table,
+  Input,
+  Button,
+  Popconfirm,
+  Form,
+  Drawer,
+  Col,
+  Row,
+  Select,
+  DatePicker,
+  Space,
+  Tooltip,
+  notification,
+  Switch,
+} from 'antd';
+import axios from 'axios';
+import Qs from 'qs';
+import '../../../../style/common.less';
 //import 'antd/dist/antd.css';
 import { PlusOutlined, SmileOutlined } from '@ant-design/icons';
 
@@ -90,7 +112,6 @@ const EditableCell = ({
   return <td {...restProps}>{childNode}</td>;
 };
 
-
 export default class ExpertInfo extends Component {
   constructor(props) {
     super(props);
@@ -105,47 +126,57 @@ export default class ExpertInfo extends Component {
         render: (_, record) =>
           this.state.dataSource.length >= 1 ? (
             <div>
-              服务权限 : <Switch checked={record.AuditState==='1'?true:false} onChange={(e)=>this.handleAuditState(e,record.ExpertID)}/>
+              服务权限 :{' '}
+              <Switch
+                checked={record.AuditState === '1' ? true : false}
+                onChange={(e) => this.handleAuditState(e, record.ExpertID)}
+              />
               <br />
-              <Popconfirm title="确认初始化密码吗?" onConfirm={() => this.initialPwd(record)}>
+              <Popconfirm
+                title="确认初始化密码吗?"
+                onConfirm={() => this.initialPwd(record)}
+              >
                 <a>初始化密码</a>
               </Popconfirm>
               &nbsp;&nbsp;&nbsp;&nbsp;
-              <Popconfirm title="确认删除专家吗?" onConfirm={() => this.delMember(record)}>
+              <Popconfirm
+                title="确认删除专家吗?"
+                onConfirm={() => this.delMember(record)}
+              >
                 <a>删除</a>
               </Popconfirm>
             </div>
-          ) : null
+          ) : null,
       },
       {
         title: '专家编号',
         dataIndex: 'ExpertID',
         key: 'ExpertID',
         editable: false,
-        width: '90px'
+        width: '90px',
       },
       {
         title: '姓名',
         dataIndex: 'ExpertName',
         key: 'ExpertName',
-        width: '10%'
+        width: '10%',
       },
       {
         title: '研究领域',
         dataIndex: 'ResearchField',
         key: 'ResearchField',
-        width: '10%'
+        width: '10%',
       },
       {
         title: '专业资格证书编号',
         dataIndex: 'TechQCcode',
-        key: 'TechQCcode'
+        key: 'TechQCcode',
       },
       {
         title: '身份证号码',
         dataIndex: 'Identification',
         key: 'Identification',
-        width: '180px'
+        width: '180px',
       },
       {
         title: '地址',
@@ -155,7 +186,7 @@ export default class ExpertInfo extends Component {
         ellipsis: {
           showTitle: false,
         },
-        render: Address => (
+        render: (Address) => (
           <Tooltip placement="topLeft" title={Address}>
             {Address}
           </Tooltip>
@@ -164,12 +195,12 @@ export default class ExpertInfo extends Component {
       {
         title: '联系电话',
         dataIndex: 'Phone',
-        key: 'Phone'
-      }
+        key: 'Phone',
+      },
     ];
 
     this.state = {
-      visible: false ,
+      visible: false,
       dataSource: [],
       count: 0,
       ExpertID: '',
@@ -182,98 +213,109 @@ export default class ExpertInfo extends Component {
       Email: '',
       Wechat: '',
       AuditState: '',
-      DrawerTitle:'新增专家'
+      DrawerTitle: '新增专家',
     };
   }
 
-  componentDidMount(){
-    this.getData()
+  componentDidMount() {
+    this.getData();
   }
 
-  formRef = React.createRef()
+  formRef = React.createRef();
 
   getData = async () => {
-    let dataSource = []
-    await axios.get('/getExperts').then(response=>{
-        if(response.data.length === 0){
-          console.log('无数据')
-        }else{
-          dataSource = response.data
+    let dataSource = [];
+    await axios
+      .get('/getExperts')
+      .then((response) => {
+        if (response.data.length === 0) {
+          console.log('无数据');
+        } else {
+          dataSource = response.data;
         }
-    }).catch(error=>{
+      })
+      .catch((error) => {
         console.log(error);
-    });
+      });
 
-    dataSource = dataSource.map((obj,index) => {
+    dataSource = dataSource.map((obj, index) => {
       return {
         ...obj,
-        key: index
+        key: index,
       };
     });
 
     this.setState({
       dataSource,
-      count: dataSource.length
-    })
-  }
+      count: dataSource.length,
+    });
+  };
 
   //初始化密码
-  initialPwd = (record) =>{
+  initialPwd = (record) => {
     let data = {
       id: record.ExpertID,
-      usertype: 'Expert'
-    }
+      usertype: 'Expert',
+    };
 
     axios({
       method: 'post',
       url: 'http://localhost:3000/initialPwd',
-      data: Qs.stringify(data)
-    }).then(response=>{
-      notification.open({
-        message: '消息',
-        description:
-          <div style={{whiteSpace: 'pre-wrap'}}>
-            {record.ExpertID}&nbsp;{record.ExpertName}&nbsp;已成功初始化密码
-            <br/>
-            初始密码为123456
-          </div>,
-        icon: <SmileOutlined style={{color:'orange'}}/>,
-        duration: 2
+      data: Qs.stringify(data),
+    })
+      .then((response) => {
+        notification.open({
+          message: '消息',
+          description: (
+            <div style={{ whiteSpace: 'pre-wrap' }}>
+              {record.ExpertID}&nbsp;{record.ExpertName}&nbsp;已成功初始化密码
+              <br />
+              初始密码为123456
+            </div>
+          ),
+          icon: <SmileOutlined style={{ color: 'orange' }} />,
+          duration: 2,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
       });
-    }).catch(error=>{
-      console.log(error);
-    });
-  }
+  };
 
   //删除人员
   delMember = (record) => {
     let data = {
       id: record.ExpertID,
-      usertype: 'Expert'
-    }
+      usertype: 'Expert',
+    };
 
     axios({
       method: 'post',
       url: 'http://localhost:3000/delMember',
-      data: Qs.stringify(data)
-    }).then(response=>{
-      if(response.data!==''){
-        notification['error']({
-          message: '注意',
-          description: response.data,
-          duration: 2
-        });
-      }else{
-        notification['warning']({
-          message: '消息',
-          description:
-          <p>已删除专家&nbsp;{record.ExpertID}&nbsp;{record.ExpertName}</p>,
-        });
-      }
-      this.getData();
-    }).catch(error=>{
-      console.log(error);
-    }); 
+      data: Qs.stringify(data),
+    })
+      .then((response) => {
+        if (response.data !== '') {
+          notification['error']({
+            message: '注意',
+            description: response.data,
+            duration: 2,
+          });
+        } else {
+          notification['warning']({
+            message: '消息',
+            description: (
+              <p>
+                已删除专家&nbsp;{record.ExpertID}&nbsp;{record.ExpertName}
+              </p>
+            ),
+          });
+        }
+        this.getData();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   handleSave = (row) => {
@@ -286,104 +328,138 @@ export default class ExpertInfo extends Component {
     });
   };
 
-  handleEID = (e) =>{
+  handleEID = (e) => {
     this.setState({
-      ExpertID: e.target.value
-    })
-  }
+      ExpertID: e.target.value,
+    });
+  };
 
-  handleName = (e) =>{
+  handleName = (e) => {
     this.setState({
-      ExpertName: e.target.value
-    })
-  }
+      ExpertName: e.target.value,
+    });
+  };
 
-  handleRSF = (e) =>{
+  handleRSF = (e) => {
     this.setState({
-      ResearchField: e.target.value
-    })
-  }
+      ResearchField: e.target.value,
+    });
+  };
 
-  handleTQCcode = (e) =>{
+  handleTQCcode = (e) => {
     this.setState({
-      TechQCcode: e.target.value
-    })
-  }
+      TechQCcode: e.target.value,
+    });
+  };
 
-  handleID = (e) =>{
+  handleID = (e) => {
     this.setState({
-      Identification: e.target.value
-    })
-  }
+      Identification: e.target.value,
+    });
+  };
 
-  handlePhone = (e) =>{
+  handlePhone = (e) => {
     this.setState({
-      Phone: e.target.value
-    })
-  }
+      Phone: e.target.value,
+    });
+  };
 
-  handleAddress = (e) =>{
+  handleAddress = (e) => {
     this.setState({
-      Address: e.target.value
-    })
-  }
+      Address: e.target.value,
+    });
+  };
 
-  handleEmail = (e) =>{
+  handleEmail = (e) => {
     this.setState({
-      Email: e.target.value
-    })
-  }
+      Email: e.target.value,
+    });
+  };
 
-  handleWechat = (e) =>{
+  handleWechat = (e) => {
     this.setState({
-      Wechat: e.target.value
-    })
-  }
+      Wechat: e.target.value,
+    });
+  };
 
-  handleAuditState = (e,ExpertID) =>{
-    const { Identification,TechQCcode,ResearchField,Address,Phone,Email,Wechat } = this.state;
+  handleAuditState = (e, ExpertID) => {
+    const {
+      Identification,
+      TechQCcode,
+      ResearchField,
+      Address,
+      Phone,
+      Email,
+      Wechat,
+    } = this.state;
 
-    let data = {}
-    if(e){
+    let data = {};
+    if (e) {
       data = {
-        ExpertID,ExpertName:"",Identification,TechQCcode,ResearchField,Address,Phone,Email,Wechat,AuditState:1
-      }
-    }else{
+        ExpertID,
+        ExpertName: '',
+        Identification,
+        TechQCcode,
+        ResearchField,
+        Address,
+        Phone,
+        Email,
+        Wechat,
+        AuditState: 1,
+      };
+    } else {
       data = {
-        ExpertID,ExpertName:"",Identification,TechQCcode,ResearchField,Address,Phone,Email,Wechat,AuditState:0
-      }
+        ExpertID,
+        ExpertName: '',
+        Identification,
+        TechQCcode,
+        ResearchField,
+        Address,
+        Phone,
+        Email,
+        Wechat,
+        AuditState: 0,
+      };
     }
 
     axios({
       method: 'post',
       url: 'http://localhost:3000/modExpert',
-      data: Qs.stringify(data)
-    }).then(response=>{
-      if(response.data!==''){
+      data: Qs.stringify(data),
+    })
+      .then((response) => {
+        if (response.data !== '') {
+          notification['error']({
+            message: '注意',
+            description: response.data,
+            duration: 2,
+          });
+        } else {
+          notification['success']({
+            message: '消息',
+            description: e ? (
+              <div style={{ whiteSpace: 'pre-wrap' }}>
+                已开启{this.state.ExpertID}专家的服务权限
+              </div>
+            ) : (
+              <div style={{ whiteSpace: 'pre-wrap' }}>
+                已关闭{this.state.ExpertID}专家的服务权限
+              </div>
+            ),
+            duration: 2,
+          });
+        }
+        this.getData();
+      })
+      .catch((error) => {
+        console.log(error);
         notification['error']({
           message: '注意',
-          description: response.data,
-          duration: 2
+          description: '出错啦!!!',
+          duration: 2,
         });
-      }else{
-        notification['success']({
-          message: '消息',
-          description:e?<div style={{whiteSpace: 'pre-wrap'}}>已开启{this.state.ExpertID}专家的服务权限</div>:
-          <div style={{whiteSpace: 'pre-wrap'}}>已关闭{this.state.ExpertID}专家的服务权限</div>,
-          duration: 2
-        });
-      }
-      this.getData();
-    }).catch(error=>{
-      console.log(error);
-      notification['error']({
-        message: '注意',
-        description: '出错啦!!!',
-        duration: 2
       });
-    });
-    
-  }
+  };
 
   showDrawer = () => {
     this.setState({
@@ -398,10 +474,10 @@ export default class ExpertInfo extends Component {
       Wechat: '',
       AuditState: '',
       DrawerTitle: '新增专家',
-      visible: true
+      visible: true,
     });
     setTimeout(() => {
-      this.formRef.current.resetFields()
+      this.formRef.current.resetFields();
     }, 200);
   };
 
@@ -412,85 +488,138 @@ export default class ExpertInfo extends Component {
   };
 
   onSubmit = async () => {
-    const { DrawerTitle,ExpertID,ExpertName,Identification,TechQCcode,ResearchField,Address,Phone,Email,Wechat,AuditState } = this.state;
+    const {
+      DrawerTitle,
+      ExpertID,
+      ExpertName,
+      Identification,
+      TechQCcode,
+      ResearchField,
+      Address,
+      Phone,
+      Email,
+      Wechat,
+      AuditState,
+    } = this.state;
 
-    if(ExpertID===''||ExpertName===''||Identification===''||TechQCcode===''||ResearchField===''||Phone===''){
+    if (
+      ExpertID === '' ||
+      ExpertName === '' ||
+      Identification === '' ||
+      TechQCcode === '' ||
+      ResearchField === '' ||
+      Phone === ''
+    ) {
       notification['error']({
         message: '注意',
-        description:'有必填字段未填写!',
-        duration: 2
+        description: '有必填字段未填写!',
+        duration: 2,
       });
       return;
     }
 
     let data = {
-      ExpertID,ExpertName,Identification,TechQCcode,ResearchField,Address,Phone,Email,Wechat,AuditState
-    }
+      ExpertID,
+      ExpertName,
+      Identification,
+      TechQCcode,
+      ResearchField,
+      Address,
+      Phone,
+      Email,
+      Wechat,
+      AuditState,
+    };
 
-    if(DrawerTitle === '新增专家'){
+    if (DrawerTitle === '新增专家') {
       axios({
         method: 'post',
         url: 'http://localhost:3000/addExpert',
-        data: Qs.stringify(data)
-      }).then(response=>{
-        if(response.data!==''){
+        data: Qs.stringify(data),
+      })
+        .then((response) => {
+          if (response.data !== '') {
+            notification['error']({
+              message: '注意',
+              description: response.data,
+              duration: 2,
+            });
+          } else {
+            notification['success']({
+              message: '消息',
+              description: (
+                <div style={{ whiteSpace: 'pre-wrap' }}>
+                  已成功添加专家{ExpertID}
+                  <br />
+                  初始密码为123456
+                </div>
+              ),
+              duration: 2,
+            });
+          }
+          this.getData();
+        })
+        .catch((error) => {
+          console.log(error);
           notification['error']({
             message: '注意',
-            description: response.data,
-            duration: 2
+            description: '出错啦!!!',
+            duration: 2,
           });
-        }else{
-          notification['success']({
-            message: '消息',
-            description:<div style={{whiteSpace: 'pre-wrap'}}>已成功添加专家{ExpertID}<br/>初始密码为123456</div>,
-            duration: 2
-          });
-        }
-        this.getData();
-      }).catch(error=>{
-        console.log(error);
-        notification['error']({
-          message: '注意',
-          description: '出错啦!!!',
-          duration: 2
         });
-      });
-    }else if(DrawerTitle === '编辑专家信息'){
+    } else if (DrawerTitle === '编辑专家信息') {
       axios({
         method: 'post',
         url: 'http://localhost:3000/modExpert',
-        data: Qs.stringify(data)
-      }).then(response=>{
-        if(response.data!==''){
+        data: Qs.stringify(data),
+      })
+        .then((response) => {
+          if (response.data !== '') {
+            notification['error']({
+              message: '注意',
+              description: response.data,
+              duration: 2,
+            });
+          } else {
+            notification['success']({
+              message: '消息',
+              description: (
+                <div style={{ whiteSpace: 'pre-wrap' }}>
+                  已成功修改{ExpertID}专家信息
+                </div>
+              ),
+              duration: 2,
+            });
+          }
+          this.getData();
+        })
+        .catch((error) => {
+          console.log(error);
           notification['error']({
             message: '注意',
-            description: response.data,
-            duration: 2
+            description: '出错啦!!!',
+            duration: 2,
           });
-        }else{
-          notification['success']({
-            message: '消息',
-            description:<div style={{whiteSpace: 'pre-wrap'}}>已成功修改{ExpertID}专家信息</div>,
-            duration: 2
-          });
-        }
-        this.getData();
-      }).catch(error=>{
-        console.log(error);
-        notification['error']({
-          message: '注意',
-          description: '出错啦!!!',
-          duration: 2
         });
-      });
     }
 
     this.onClose();
-
   };
 
   render() {
-    const { dataSource, ExpertID, ExpertName, Identification, TechQCcode, ResearchField, Address, Phone, Email, Wechat, AuditState } = this.state;
+    const {
+      dataSource,
+      ExpertID,
+      ExpertName,
+      Identification,
+      TechQCcode,
+      ResearchField,
+      Address,
+      Phone,
+      Email,
+      Wechat,
+      AuditState,
+    } = this.state;
     const components = {
       body: {
         row: EditableRow,
@@ -521,7 +650,12 @@ export default class ExpertInfo extends Component {
           <Breadcrumb.Item>专家信息管理</Breadcrumb.Item>
         </Breadcrumb>
         <div className="site-layout-background" style={{ padding: 10 }}>
-          <Button type="primary" onClick={this.showDrawer} icon={<PlusOutlined />} style={{marginBottom: 16}}>
+          <Button
+            type="primary"
+            onClick={this.showDrawer}
+            icon={<PlusOutlined />}
+            style={{ marginBottom: 16 }}
+          >
             新增专家
           </Button>
           <Table
@@ -531,20 +665,48 @@ export default class ExpertInfo extends Component {
             dataSource={dataSource}
             columns={columns}
             pagination={{ pageSize: 5 }}
-            onRow={record => {
+            onRow={(record) => {
               return {
-                onDoubleClick: event => {
-                  const { ExpertID,ExpertName,Identification,TechQCcode,ResearchField,Address,Phone,Email,Wechat,AuditState } = record
+                onDoubleClick: (event) => {
+                  const {
+                    ExpertID,
+                    ExpertName,
+                    Identification,
+                    TechQCcode,
+                    ResearchField,
+                    Address,
+                    Phone,
+                    Email,
+                    Wechat,
+                    AuditState,
+                  } = record;
                   this.setState({
-                    ExpertID,ExpertName,Identification,TechQCcode,ResearchField,Address,Phone,Email,Wechat,AuditState,
+                    ExpertID,
+                    ExpertName,
+                    Identification,
+                    TechQCcode,
+                    ResearchField,
+                    Address,
+                    Phone,
+                    Email,
+                    Wechat,
+                    AuditState,
                     DrawerTitle: '编辑专家信息',
-                    visible: true
+                    visible: true,
                   });
                   setTimeout(() => {
                     this.formRef.current.setFieldsValue({
-                      ExpertID,ExpertName,Identification,TechQCcode,ResearchField,Address,Phone,Email,Wechat
-                    })
-                  }, 100); 
+                      ExpertID,
+                      ExpertName,
+                      Identification,
+                      TechQCcode,
+                      ResearchField,
+                      Address,
+                      Phone,
+                      Email,
+                      Wechat,
+                    });
+                  }, 100);
                 },
               };
             }}
@@ -566,7 +728,7 @@ export default class ExpertInfo extends Component {
             </Space>
           }
         >
-          <Form layout="vertical" ref={this.formRef} >
+          <Form layout="vertical" ref={this.formRef}>
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
@@ -574,7 +736,11 @@ export default class ExpertInfo extends Component {
                   label="专家编号"
                   rules={[{ required: true, message: '请输入专家编号' }]}
                 >
-                  <Input value={this.state.ExpertID} placeholder="请输入专家编号" onChange={this.handleEID} />
+                  <Input
+                    value={this.state.ExpertID}
+                    placeholder="请输入专家编号"
+                    onChange={this.handleEID}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -583,7 +749,11 @@ export default class ExpertInfo extends Component {
                   label="姓名"
                   rules={[{ required: true, message: '请输入姓名' }]}
                 >
-                  <Input value={this.state.ExpertName} placeholder="请输入姓名" onChange={this.handleName} />
+                  <Input
+                    value={this.state.ExpertName}
+                    placeholder="请输入姓名"
+                    onChange={this.handleName}
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -594,16 +764,26 @@ export default class ExpertInfo extends Component {
                   label="研究领域"
                   rules={[{ required: true, message: '请输入研究领域' }]}
                 >
-                  <Input value={this.state.ResearchField} placeholder="请输入研究领域" onChange={this.handleRSF} />
+                  <Input
+                    value={this.state.ResearchField}
+                    placeholder="请输入研究领域"
+                    onChange={this.handleRSF}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
                   name="TechQCcode"
                   label="专业资格证书编号"
-                  rules={[{ required: true, message: '请输入专业资格证书编号' }]}
+                  rules={[
+                    { required: true, message: '请输入专业资格证书编号' },
+                  ]}
                 >
-                  <Input value={this.state.TechQCcode} placeholder="请输入专业资格证书编号" onChange={this.handleTQCcode} />
+                  <Input
+                    value={this.state.TechQCcode}
+                    placeholder="请输入专业资格证书编号"
+                    onChange={this.handleTQCcode}
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -614,7 +794,11 @@ export default class ExpertInfo extends Component {
                   label="身份证号码"
                   rules={[{ required: true, message: '请输入身份证号码' }]}
                 >
-                  <Input value={this.state.Identification} placeholder="请输入身份证号码" onChange={this.handleID} />
+                  <Input
+                    value={this.state.Identification}
+                    placeholder="请输入身份证号码"
+                    onChange={this.handleID}
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -623,43 +807,49 @@ export default class ExpertInfo extends Component {
                   label="联系电话"
                   rules={[{ required: true, message: '请输入联系电话' }]}
                 >
-                  <Input value={this.state.Phone} onChange={this.handlePhone} placeholder="请输入联系电话" />
+                  <Input
+                    value={this.state.Phone}
+                    onChange={this.handlePhone}
+                    placeholder="请输入联系电话"
+                  />
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item
-                  name="Address"
-                  label="详细住址"
-                >
-                  <Input.TextArea rows={3} value={this.state.Address} onChange={this.handleAddress} placeholder="请输入详细住址" />
+                <Form.Item name="Address" label="详细住址">
+                  <Input.TextArea
+                    rows={3}
+                    value={this.state.Address}
+                    onChange={this.handleAddress}
+                    placeholder="请输入详细住址"
+                  />
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item
-                  name="Email"
-                  label="邮箱地址"
-                >
-                  <Input value={this.state.Email} onChange={this.handleEmail} placeholder="请输入邮箱地址" />
+                <Form.Item name="Email" label="邮箱地址">
+                  <Input
+                    value={this.state.Email}
+                    onChange={this.handleEmail}
+                    placeholder="请输入邮箱地址"
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item
-                  name="Wechat"
-                  label="微信号"
-                >
-                  <Input value={this.state.Wechat} onChange={this.handleWechat} placeholder="请输入微信号" />
+                <Form.Item name="Wechat" label="微信号">
+                  <Input
+                    value={this.state.Wechat}
+                    onChange={this.handleWechat}
+                    placeholder="请输入微信号"
+                  />
                 </Form.Item>
               </Col>
             </Row>
           </Form>
         </Drawer>
       </div>
-    )
+    );
   }
 }
-
-

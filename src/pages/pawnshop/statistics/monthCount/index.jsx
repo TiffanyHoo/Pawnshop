@@ -1,11 +1,35 @@
-import React, { Component } from 'react'
-import { Breadcrumb, Calendar, Badge, Input, Button, Popconfirm, Form, Tabs, Select, DatePicker, Space, Tooltip, notification, Modal, Tag, Cascader, Upload, message } from 'antd'
-import axios from 'axios'
-import Qs from 'qs'
-import store from '../../../../redux/store'
-import '../../../../style/common.less'
+import React, { Component } from 'react';
+import {
+  Breadcrumb,
+  Calendar,
+  Badge,
+  Input,
+  Button,
+  Popconfirm,
+  Form,
+  Tabs,
+  Select,
+  DatePicker,
+  Space,
+  Tooltip,
+  notification,
+  Modal,
+  Tag,
+  Cascader,
+  Upload,
+  message,
+} from 'antd';
+import axios from 'axios';
+import Qs from 'qs';
+import store from '../../../../redux/store';
+import '../../../../style/common.less';
 //import 'antd/dist/antd.css';
-import { PlusOutlined, SmileOutlined, ExclamationCircleOutlined, SearchOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  SmileOutlined,
+  ExclamationCircleOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
 import moment from 'moment';
 
 export default class MonthCount extends Component {
@@ -41,26 +65,26 @@ export default class MonthCount extends Component {
       default:
     }
     return listData || [];
-  }
+  };
 
   dateCellRender = (value) => {
     const listData = this.getListData(value);
     return (
       <ul className="events">
-        {listData.map(item => (
+        {listData.map((item) => (
           <li key={item.content}>
             <Badge status={item.type} text={item.content} />
           </li>
         ))}
       </ul>
     );
-  }
+  };
 
   getMonthData = (value) => {
     if (value.month() === 8) {
       return 1394;
     }
-  }
+  };
 
   monthCellRender = (value) => {
     const num = this.getMonthData(value);
@@ -70,7 +94,7 @@ export default class MonthCount extends Component {
         <span>Backlog number</span>
       </div>
     ) : null;
-  }  
+  };
 
   render() {
     return (
@@ -79,13 +103,13 @@ export default class MonthCount extends Component {
           <Breadcrumb.Item>经营统计</Breadcrumb.Item>
           <Breadcrumb.Item>按日结算</Breadcrumb.Item>
         </Breadcrumb> */}
-        <div className="site-layout-background" >
-          <Calendar 
-          dateCellRender={this.dateCellRender} 
-          monthCellRender={this.monthCellRender} 
+        <div className="site-layout-background">
+          <Calendar
+            dateCellRender={this.dateCellRender}
+            monthCellRender={this.monthCellRender}
           />
         </div>
       </div>
-    )
+    );
   }
 }

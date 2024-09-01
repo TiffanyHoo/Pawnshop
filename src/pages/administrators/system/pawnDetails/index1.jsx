@@ -11,9 +11,7 @@ class Demo extends React.Component {
   };
 
   genTreeNode = (parentId, isLeaf = false) => {
-    const random = Math.random()
-      .toString(36)
-      .substring(2, 6);
+    const random = Math.random().toString(36).substring(2, 6);
     return {
       id: random,
       pId: parentId,
@@ -23,8 +21,8 @@ class Demo extends React.Component {
     };
   };
 
-  onLoadData = treeNode =>
-    new Promise(resolve => {
+  onLoadData = (treeNode) =>
+    new Promise((resolve) => {
       const { id } = treeNode.props;
       setTimeout(() => {
         this.setState({
@@ -37,7 +35,7 @@ class Demo extends React.Component {
       }, 300);
     });
 
-  onChange = value => {
+  onChange = (value) => {
     console.log(value);
     this.setState({ value });
   };

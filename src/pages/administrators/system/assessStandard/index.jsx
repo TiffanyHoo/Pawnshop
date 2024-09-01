@@ -1,20 +1,35 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import Qs from 'qs';
-import { Breadcrumb, Layout, Form, Button, Tag, Input, Tooltip, Tree, message, notification } from 'antd';
-import { DownOutlined, PlusOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
+import {
+  Breadcrumb,
+  Layout,
+  Form,
+  Button,
+  Tag,
+  Input,
+  Tooltip,
+  Tree,
+  message,
+  notification,
+} from 'antd';
+import {
+  DownOutlined,
+  PlusOutlined,
+  CloseOutlined,
+  CheckOutlined,
+} from '@ant-design/icons';
 
-const {TreeNode} = Tree
+const { TreeNode } = Tree;
 const { Content, Sider } = Layout;
 
 export default class AssessStandard extends Component {
-  
   constructor(props) {
     super(props);
 
     this.state = {
       dataSource: [],
-      selectedNode: "",
+      selectedNode: '',
       title: '',
       btnType: '',
       tags: [],
@@ -30,186 +45,202 @@ export default class AssessStandard extends Component {
     };
   }
 
-  componentDidMount(){
+  componentDidMount() {
     this.getData();
   }
 
-  formRef = React.createRef()
-  inputA = React.createRef()
-  inputB = React.createRef()
+  formRef = React.createRef();
+  inputA = React.createRef();
+  inputB = React.createRef();
 
   getData = async () => {
-    let dataSource = []
+    let dataSource = [];
 
-    await axios.get('/getCategory',{
-      params:{
-        level: 1
-      }
-    }).then(response=>{
-        if(response.data.length === 0){
-          console.log('无数据')
-        }else{
-          dataSource = response.data
+    await axios
+      .get('/getCategory', {
+        params: {
+          level: 1,
+        },
+      })
+      .then((response) => {
+        if (response.data.length === 0) {
+          console.log('无数据');
+        } else {
+          dataSource = response.data;
         }
-    }).catch(error=>{
+      })
+      .catch((error) => {
         console.log(error);
-    });
+      });
 
-    dataSource = dataSource.map((obj,index) => {
+    dataSource = dataSource.map((obj, index) => {
       return {
         ...obj,
         key: obj.CID,
-        isLeaf: obj.isLeafNode==="0"?false:true
-      };  
+        isLeaf: obj.isLeafNode === '0' ? false : true,
+      };
     });
 
     this.setState({
       dataSource,
-      count: dataSource.length
-    })
-  }
+      count: dataSource.length,
+    });
+  };
 
   updateTreeData(list, key, children) {
     return list.map((node) => {
       if (node.key === key) {
-        console.log(node,children)
+        console.log(node, children);
         return { ...node, children };
       }
-  
+
       if (node.children) {
-        return { ...node, children: this.updateTreeData(node.children, key, children) };
+        return {
+          ...node,
+          children: this.updateTreeData(node.children, key, children),
+        };
       }
-  
+
       return node;
     });
   }
 
-  onLoadData = treeNode => {
+  onLoadData = (treeNode) => {
     return new Promise(async (resolve) => {
       const { key } = treeNode;
       let children = [];
-      await axios.get('/getCategory',{
-        params:{
-          ParentNode: treeNode.CID
-        }
-      }).then(response=>{
-          if(response.data.length === 0){
-            console.log('无数据')
-          }else{
-            children = response.data
+      await axios
+        .get('/getCategory', {
+          params: {
+            ParentNode: treeNode.CID,
+          },
+        })
+        .then((response) => {
+          if (response.data.length === 0) {
+            console.log('无数据');
+          } else {
+            children = response.data;
           }
-      }).catch(error=>{
+        })
+        .catch((error) => {
           console.log(error);
-      });
+        });
 
-      children = children.map((obj,index) => {
+      children = children.map((obj, index) => {
         return {
           ...obj,
           key: obj.CID,
-          isLeaf: obj.isLeafNode==="0"?false:true
-        };  
+          isLeaf: obj.isLeafNode === '0' ? false : true,
+        };
       });
 
-      const {dataSource} = this.state
+      const { dataSource } = this.state;
       let newtreeData = this.updateTreeData(dataSource, key, children);
       this.setState({
-        dataSource:newtreeData
+        dataSource: newtreeData,
       });
       resolve();
     });
-  }
+  };
 
   selectTreeNode = async (treeNode) => {
-    if(treeNode.length===0){
-      this.setState({selectedNode:"",title:"",tags:[],DocTags:[]})
+    if (treeNode.length === 0) {
+      this.setState({ selectedNode: '', title: '', tags: [], DocTags: [] });
       setTimeout(() => {
         this.formRef.current.setFieldsValue({
-          title: ""
-        })
+          title: '',
+        });
       }, 200);
       return;
     }
-    let selectedNode = {}
-    await axios.get('/getCategory',{
-      params:{
-        id: treeNode[0]
-      }
-    }).then(response=>{
-        if(response.data.length === 0){
-          console.log('无数据')
-        }else{
-          selectedNode = response.data[0]
+    let selectedNode = {};
+    await axios
+      .get('/getCategory', {
+        params: {
+          id: treeNode[0],
+        },
+      })
+      .then((response) => {
+        if (response.data.length === 0) {
+          console.log('无数据');
+        } else {
+          selectedNode = response.data[0];
         }
-    }).catch(error=>{
+      })
+      .catch((error) => {
         console.log(error);
-    });
-    
-    let tags = []
-    if(selectedNode.SpeDetail.trim()!==""){
-      tags = selectedNode.SpeDetail.split(";");
+      });
+
+    let tags = [];
+    if (selectedNode.SpeDetail.trim() !== '') {
+      tags = selectedNode.SpeDetail.split(';');
     }
 
-    let DocTags = []
-    if(selectedNode.DocDetail.trim()!==""){
-      DocTags = selectedNode.DocDetail.split(";");
+    let DocTags = [];
+    if (selectedNode.DocDetail.trim() !== '') {
+      DocTags = selectedNode.DocDetail.split(';');
     }
 
     this.setState({
-      tags, DocTags, selectedNode, title: selectedNode.title, btnType:""
-    })
+      tags,
+      DocTags,
+      selectedNode,
+      title: selectedNode.title,
+      btnType: '',
+    });
 
     setTimeout(() => {
       this.formRef.current.setFieldsValue({
-        title: selectedNode.title
-      })
+        title: selectedNode.title,
+      });
     }, 200);
-  }
+  };
 
-  handleSave = () =>{
-    const {selectedNode,btnType,title} = this.state
-    if(selectedNode === ""){
-      message.warning("请先选择指定类目");
+  handleSave = () => {
+    const { selectedNode, btnType, title } = this.state;
+    if (selectedNode === '') {
+      message.warning('请先选择指定类目');
       return;
     }
 
     let data = {
-      operation: btnType===""?"save":btnType,
+      operation: btnType === '' ? 'save' : btnType,
       id: selectedNode.CID,
-      title
-    }
-    console.log(data)
+      title,
+    };
+    console.log(data);
     axios({
       method: 'post',
       url: 'http://localhost:3000/modCategory',
-      data: Qs.stringify(data)
-    }).then(response=>{
-      if(response.data!==''){
-        notification['error']({
-          message: '注意',
-          description: response.data,
-          duration: 2
-        });
-      }else{
-        notification['success']({
-          message: '消息',
-          description:
-            <p>已成功修改类目信息</p>,
-        });
-      }
-    }).catch(error=>{
-      console.log(error);
-    });
-
-  }
+      data: Qs.stringify(data),
+    })
+      .then((response) => {
+        if (response.data !== '') {
+          notification['error']({
+            message: '注意',
+            description: response.data,
+            duration: 2,
+          });
+        } else {
+          notification['success']({
+            message: '消息',
+            description: <p>已成功修改类目信息</p>,
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   //标签编辑
-  handleCloseA = removedTag => {
-    const tags = this.state.tags.filter(tag => tag !== removedTag);
+  handleCloseA = (removedTag) => {
+    const tags = this.state.tags.filter((tag) => tag !== removedTag);
     this.setState({ tags });
   };
 
-  handleCloseB = removedTag => {
-    const DocTags = this.state.DocTags.filter(tag => tag !== removedTag);
+  handleCloseB = (removedTag) => {
+    const DocTags = this.state.DocTags.filter((tag) => tag !== removedTag);
     this.setState({ DocTags });
   };
 
@@ -275,7 +306,17 @@ export default class AssessStandard extends Component {
 
   render() {
     const { dataSource, DocTags } = this.state;
-    const { tags, inputVisibleA, inputVisibleB, inputValueA, inputValueB, editInputIndexA, editInputIndexB, editInputValueA, editInputValueB } = this.state;
+    const {
+      tags,
+      inputVisibleA,
+      inputVisibleB,
+      inputValueA,
+      inputValueB,
+      editInputIndexA,
+      editInputIndexB,
+      editInputValueA,
+      editInputValueB,
+    } = this.state;
 
     return (
       <div>
@@ -283,28 +324,46 @@ export default class AssessStandard extends Component {
           <Breadcrumb.Item>系统设置</Breadcrumb.Item>
           <Breadcrumb.Item>估价标准设置</Breadcrumb.Item>
         </Breadcrumb>
-        <div className="site-layout-background" style={{ padding: 10, height: '83vh'}}>
+        <div
+          className="site-layout-background"
+          style={{ padding: 10, height: '83vh' }}
+        >
           <Layout style={{ height: '70vh' }}>
-              <Sider theme='light' style={{padding:10, border:'1px solid #eee'}}>
-                <Tree
-                  showLine
-                  switcherIcon={<DownOutlined />}
-                  loadData={this.onLoadData}
-                  treeData={dataSource}
-                  height={500} 
-                  onSelect={this.selectTreeNode}
-                />
-              </Sider>
-              <Content style={{ paddingLeft: 10, backgroundColor: 'white' }}>
-                <div>
-                  <Button type="primary" onClick={this.handleSave} icon={<CheckOutlined />} style={{marginBottom: 10, marginLeft: 10}}>
-                    保存
-                  </Button>
-                  <Form layout="vertical" ref={this.formRef} style={{padding: 10}} >
-                    <Form.Item name="title" label="类目名称">
-                      <Input disabled onChange={(e)=>this.setState({title:e.target.value})}/>
-                    </Form.Item>
-                    {/* <Form.Item name="SpeDetail" label="规格属性">
+            <Sider
+              theme="light"
+              style={{ padding: 10, border: '1px solid #eee' }}
+            >
+              <Tree
+                showLine
+                switcherIcon={<DownOutlined />}
+                loadData={this.onLoadData}
+                treeData={dataSource}
+                height={500}
+                onSelect={this.selectTreeNode}
+              />
+            </Sider>
+            <Content style={{ paddingLeft: 10, backgroundColor: 'white' }}>
+              <div>
+                <Button
+                  type="primary"
+                  onClick={this.handleSave}
+                  icon={<CheckOutlined />}
+                  style={{ marginBottom: 10, marginLeft: 10 }}
+                >
+                  保存
+                </Button>
+                <Form
+                  layout="vertical"
+                  ref={this.formRef}
+                  style={{ padding: 10 }}
+                >
+                  <Form.Item name="title" label="类目名称">
+                    <Input
+                      disabled
+                      onChange={(e) => this.setState({ title: e.target.value })}
+                    />
+                  </Form.Item>
+                  {/* <Form.Item name="SpeDetail" label="规格属性">
                       <>
                         {tags.map((tag, index) => {
                           if (editInputIndexA === index) {
@@ -442,9 +501,9 @@ export default class AssessStandard extends Component {
                         )}
                       </>
                     </Form.Item> */}
-                  </Form>
-                </div>
-              </Content>
+                </Form>
+              </div>
+            </Content>
           </Layout>
         </div>
       </div>

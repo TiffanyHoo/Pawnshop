@@ -1,11 +1,35 @@
-import React, { Component, useContext, useState, useEffect, useRef } from 'react'
-import { Breadcrumb, Table, Input, Button, Form, Drawer, Image, Select, DatePicker, Space, Badge, notification } from 'antd'
-import axios from 'axios'
-import Qs from 'qs'
-import store from '../../../../redux/store'
-import '../../../../style/common.less'
+import React, {
+  Component,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
+import {
+  Breadcrumb,
+  Table,
+  Input,
+  Button,
+  Form,
+  Drawer,
+  Image,
+  Select,
+  DatePicker,
+  Space,
+  Badge,
+  notification,
+} from 'antd';
+import axios from 'axios';
+import Qs from 'qs';
+import store from '../../../../redux/store';
+import '../../../../style/common.less';
 //import 'antd/dist/antd.css';
-import { QuestionCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, SmileOutlined } from '@ant-design/icons';
+import {
+  QuestionCircleOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  SmileOutlined,
+} from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -89,7 +113,6 @@ const EditableCell = ({
   return <td {...restProps}>{childNode}</td>;
 };
 
-
 export default class Orders extends Component {
   constructor(props) {
     super(props);
@@ -101,79 +124,73 @@ export default class Orders extends Component {
         key: 'state',
         width: '10%',
         filters: [
-          {text: '已接单',value: '1'},
-          {text: '已完成',value: '2'},
-          {text: '已拒单',value: '3'},
-          {text: '未接单',value: '0'},
+          { text: '已接单', value: '1' },
+          { text: '已完成', value: '2' },
+          { text: '已拒单', value: '3' },
+          { text: '未接单', value: '0' },
         ],
         render: (_, record) =>
-          record.state === "1" ? (
-              <Badge color="orange" text="已接单" />
-          ) : record.state === "2" ? (
-              <Badge color="green" text="已完成" />
-          ) : record.state === "0" ? (
-              <Badge color="volcano" text="已拒单" />
-          ) : <Badge color="blue" text="未接单" />
-        },
+          record.state === '1' ? (
+            <Badge color="orange" text="已接单" />
+          ) : record.state === '2' ? (
+            <Badge color="green" text="已完成" />
+          ) : record.state === '0' ? (
+            <Badge color="volcano" text="已拒单" />
+          ) : (
+            <Badge color="blue" text="未接单" />
+          ),
+      },
       {
         title: '当物编号',
         dataIndex: 'PIID',
         key: 'PIID',
-        editable: false
+        editable: false,
       },
       {
         title: '类目',
         dataIndex: 'title',
-        key: 'title'
+        key: 'title',
       },
       {
         title: '当行名称',
         dataIndex: 'PSName',
-        key: 'PSName'
+        key: 'PSName',
       },
       {
         title: '联系电话',
         dataIndex: 'PSPhone',
-        key: 'PSPhone'
+        key: 'PSPhone',
       },
       {
         title: '鉴定服务',
         dataIndex: 'Authenticate',
         key: 'Authenticate',
         render: (_, record) =>
-          record.Authenticate === "0" ? (
-            <span>否</span>
-          ) : (
-            <span>是</span>
-          ) 
+          record.Authenticate === '0' ? <span>否</span> : <span>是</span>,
       },
       {
         title: '估价服务',
         dataIndex: 'Assess',
         key: 'Assess',
         render: (_, record) =>
-          record.Assess === "1" ? (
-            <span>是</span>
-          ) : (
-            <span>否</span>
-          ) 
+          record.Assess === '1' ? <span>是</span> : <span>否</span>,
       },
       {
         title: '鉴定服务费',
         dataIndex: 'AuthenticateFare',
-        key: 'AuthenticateFare'
+        key: 'AuthenticateFare',
       },
       {
         title: '估价服务费',
         dataIndex: 'AssessFare',
-        key: 'AssessFare'
+        key: 'AssessFare',
       },
     ];
 
     this.state = {
       ImageVisible: false,
-      images:['http://localhost:8080/filepath/item/gold1.png'],
-      visible: false ,
+      images: ['http://localhost:8080/filepath/item/gold1.png'],
+      visible: false,
       dataSource: [],
       count: 0,
       PIID: '',
@@ -197,45 +214,51 @@ export default class Orders extends Component {
       AssessFare: '',
       state: '',
       Notes: '',
-      title:'',Specification:'',Documents:'',Discript:''
+      title: '',
+      Specification: '',
+      Documents: '',
+      Discript: '',
     };
   }
 
-  componentDidMount(){
-    this.getData()
+  componentDidMount() {
+    this.getData();
   }
 
   getData = async () => {
-    let dataSource = []
-    console.log(store.getState().ExpertID)
-    await axios.get('/getExpSer',{
-      params:{
-        type:'getAllSer',
-        ExpertID:store.getState().ExpertID
-      }
-    }).then(response=>{
-        if(response.data.length === 0){
-          console.log('无数据')
-        }else{
-          dataSource = response.data
-          console.log(dataSource)
+    let dataSource = [];
+    console.log(store.getState().ExpertID);
+    await axios
+      .get('/getExpSer', {
+        params: {
+          type: 'getAllSer',
+          ExpertID: store.getState().ExpertID,
+        },
+      })
+      .then((response) => {
+        if (response.data.length === 0) {
+          console.log('无数据');
+        } else {
+          dataSource = response.data;
+          console.log(dataSource);
         }
-    }).catch(error=>{
+      })
+      .catch((error) => {
         console.log(error);
-    });
+      });
 
-    dataSource = dataSource.map((obj,index) => {
+    dataSource = dataSource.map((obj, index) => {
       return {
         ...obj,
-        key: index
+        key: index,
       };
     });
 
     this.setState({
       dataSource,
-      count: dataSource.length
-    })
-  }
+      count: dataSource.length,
+    });
+  };
 
   handleAccept = async (record) => {
     var that = this;
@@ -243,59 +266,57 @@ export default class Orders extends Component {
     let data = {
       PIID: record.PIID,
       PSID: record.PSID,
-      ExpertID:store.getState().ExpertID,
-      type: 'Accept'
-    }
+      ExpertID: store.getState().ExpertID,
+      type: 'Accept',
+    };
 
     axios({
       method: 'post',
       url: 'http://localhost:3000/modExpSer',
-      data: Qs.stringify(data)
-    }).then(response=>{
-      notification.open({
-        message: '消息',
-        description:
-          <div style={{whiteSpace: 'pre-wrap'}}>
-            已成功接单
-          </div>,
-        icon: <SmileOutlined style={{color:'orange'}}/>,
-        duration: 2
+      data: Qs.stringify(data),
+    })
+      .then((response) => {
+        notification.open({
+          message: '消息',
+          description: <div style={{ whiteSpace: 'pre-wrap' }}>已成功接单</div>,
+          icon: <SmileOutlined style={{ color: 'orange' }} />,
+          duration: 2,
+        });
+        that.getData();
+      })
+      .catch((error) => {
+        console.log(error);
       });
-      that.getData();
-    }).catch(error=>{
-      console.log(error);
-    });
-  }
+  };
 
   handleReject = async (record) => {
-    var that= this;
+    var that = this;
 
     let data = {
       PIID: record.PIID,
       PSID: record.PSID,
-      ExpertID:store.getState().ExpertID,
-      type: 'Reject'
-    }
+      ExpertID: store.getState().ExpertID,
+      type: 'Reject',
+    };
 
     axios({
       method: 'post',
       url: 'http://localhost:3000/modExpSer',
-      data: Qs.stringify(data)
-    }).then(response=>{
-      notification.open({
-        message: '消息',
-        description:
-          <div style={{whiteSpace: 'pre-wrap'}}>
-            已成功拒单
-          </div>,
-        icon: <SmileOutlined style={{color:'orange'}}/>,
-        duration: 2
+      data: Qs.stringify(data),
+    })
+      .then((response) => {
+        notification.open({
+          message: '消息',
+          description: <div style={{ whiteSpace: 'pre-wrap' }}>已成功拒单</div>,
+          icon: <SmileOutlined style={{ color: 'orange' }} />,
+          duration: 2,
+        });
+        that.getData();
+      })
+      .catch((error) => {
+        console.log(error);
       });
-      that.getData();
-    }).catch(error=>{
-      console.log(error);
-    });
-  }
+  };
 
   showDrawer = () => {
     this.setState({
@@ -310,37 +331,51 @@ export default class Orders extends Component {
   };
 
   onSubmit = async () => {
-    console.log(this.state)
+    console.log(this.state);
 
-    await axios.post('/addComMem',{
-      ComMemID: this.state.ComMemID,
-      ComMemName: this.state.ComMemName,
-      Gender: this.state.Gender,
-      BirthDate: this.state.BirthDate,
-      Address: this.state.Address,
-      Phone: this.state.Phone,
-      Email: this.state.Email,
-      Notes: this.state.Notes
-    }).then(response=>{
-      console.log(response);
-    }).catch(error=>{
+    await axios
+      .post('/addComMem', {
+        ComMemID: this.state.ComMemID,
+        ComMemName: this.state.ComMemName,
+        Gender: this.state.Gender,
+        BirthDate: this.state.BirthDate,
+        Address: this.state.Address,
+        Phone: this.state.Phone,
+        Email: this.state.Email,
+        Notes: this.state.Notes,
+      })
+      .then((response) => {
+        console.log(response);
+      })
+      .catch((error) => {
         console.log(error);
-    });
-
-
+      });
 
     notification.open({
       message: 'Notification',
-      description:
-        <div style={{whiteSpace: 'pre-wrap'}}>已成功添加人员<br/>初始密码为123456</div>,
-      icon: <SmileOutlined style={{color:'orange'}}/>,
-      duration: 2
+      description: (
+        <div style={{ whiteSpace: 'pre-wrap' }}>
+          已成功添加人员
+          <br />
+          初始密码为123456
+        </div>
+      ),
+      icon: <SmileOutlined style={{ color: 'orange' }} />,
+      duration: 2,
     });
     this.onClose();
   };
 
   render() {
-    const { dataSource,title,Specification,Documents,Discript,images,ImageVisible } = this.state;
+    const {
+      dataSource,
+      title,
+      Specification,
+      Documents,
+      Discript,
+      images,
+      ImageVisible,
+    } = this.state;
     const components = {
       body: {
         row: EditableRow,
@@ -358,7 +393,7 @@ export default class Orders extends Component {
           record,
           editable: col.editable,
           dataIndex: col.dataIndex,
-          title: col.title
+          title: col.title,
         }),
       };
     });
@@ -377,18 +412,28 @@ export default class Orders extends Component {
             dataSource={dataSource}
             columns={columns}
             pagination={{ pageSize: 5 }}
-            onRow={record => {
+            onRow={(record) => {
               return {
-                  onDoubleClick: event => {
-                      const { title,Specification,Documents,Discript,photopath } = record
-                      console.log(record)
-                      console.log(photopath.split(";"))
-                      this.setState({
-                        visible:true,title,Specification,Documents,Discript,
-                        images:photopath.split(";")
-                      });
-                      //console.log(TID)
-                  },
+                onDoubleClick: (event) => {
+                  const {
+                    title,
+                    Specification,
+                    Documents,
+                    Discript,
+                    photopath,
+                  } = record;
+                  console.log(record);
+                  console.log(photopath.split(';'));
+                  this.setState({
+                    visible: true,
+                    title,
+                    Specification,
+                    Documents,
+                    Discript,
+                    images: photopath.split(';'),
+                  });
+                  //console.log(TID)
+                },
               };
             }}
           />
@@ -401,9 +446,13 @@ export default class Orders extends Component {
           visible={this.state.visible}
           bodyStyle={{ paddingBottom: 80 }}
         >
-          <Input.TextArea rows={3} onChange={this.handleAddress} placeholder="请输入评估结果" />
+          <Input.TextArea
+            rows={3}
+            onChange={this.handleAddress}
+            placeholder="请输入评估结果"
+          />
         </Drawer>
       </div>
-    )
+    );
   }
 }
